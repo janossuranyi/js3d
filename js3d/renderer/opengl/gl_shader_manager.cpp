@@ -273,7 +273,7 @@ namespace js3d {
 				"in vec4 vo_tangent;\n" \
 				"in vec2 vo_st;\n\n" \
 				"void main() {\n" \
-				"\tfragColor = vec4(vo_st,1,1);\n" \
+				"\tfragColor = vec4(vec3(vo_tangent) * 2.0 - 1.0, 1);\n" \
 				"}" };
 
 			if (p.create_program_from_shader_source(vs, fs))

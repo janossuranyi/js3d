@@ -29,14 +29,14 @@ namespace js3d {
 		}
 		void setNormal(const glm::vec3& p0)
 		{
-			vec3 p = glm::clamp(p0, -1.0f, 1.0f);
+			glm::vec3 p = glm::clamp(p0, -1.0f, 1.0f);
 			normal[0] = SNORM_TO_U16(p.x);
 			normal[1] = SNORM_TO_U16(p.y);
 			normal[2] = SNORM_TO_U16(p.z);
 		}
 		void setTangent(const glm::vec4& p0)
 		{
-			vec4 p = glm::clamp(p0, -1.0f, 1.0f);
+			glm::vec4 p = glm::clamp(p0, -1.0f, 1.0f);
 			tangent[0] = SNORM_TO_U16(p.x);
 			tangent[1] = SNORM_TO_U16(p.y);
 			tangent[2] = SNORM_TO_U16(p.z);
@@ -44,7 +44,7 @@ namespace js3d {
 		}
 		void setTextCoord(const glm::vec2& p0)
 		{
-			vec2 p = glm::clamp(p0, 0.0f, 1.0f);
+			glm::vec2 p = glm::clamp(p0, 0.0f, 1.0f);
 			st[0] = UNORM_TO_U16(p.x);
 			st[1] = UNORM_TO_U16(p.y);
 		}

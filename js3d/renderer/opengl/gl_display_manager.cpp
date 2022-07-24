@@ -133,6 +133,7 @@ namespace js3d {
 
         glCreateVertexArrays(1, &_vao);
         glBindVertexArray(_vao);
+
         glEnableVertexAttribArray(0);
         glEnableVertexAttribArray(1);
         glEnableVertexAttribArray(2);
