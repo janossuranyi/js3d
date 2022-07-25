@@ -12,12 +12,13 @@
 #define VERTEX_ATTRIB_POSITION_OFFSET	(0)
 #define VERTEX_ATTRIB_NORMAL_OFFSET		(3*4)
 #define VERTEX_ATTRIB_TANGENT_OFFSET	(6*4)
-#define VERTEX_ATTRIB_TEXCOORD_OFFSET	(10*4)
+#define VERTEX_ATTRIB_TEXCOORD_OFFSET	(9*4)
 
 #define VERTEX_ATTRIB_COMPACT_POSITION_OFFSET	(0)
 #define VERTEX_ATTRIB_COMPACT_NORMAL_OFFSET		(12)
-#define VERTEX_ATTRIB_COMPACT_TANGENT_OFFSET	(12+6)
-#define VERTEX_ATTRIB_COMPACT_TEXCOORD_OFFSET	(18+8)
+#define VERTEX_ATTRIB_COMPACT_TANGENT_OFFSET	(18)
+#define VERTEX_ATTRIB_COMPACT_TEXCOORD_OFFSET	(24)
+#define VERTEX_ATTRIB_COMPACT_USER_OFFSET	    (28)
 
 namespace js3d {
     
@@ -138,6 +139,7 @@ namespace js3d {
         glEnableVertexAttribArray(1);
         glEnableVertexAttribArray(2);
         glEnableVertexAttribArray(3);
+        glEnableVertexAttribArray(4);
 
         if (glVersion() >= 430)
         {
@@ -145,11 +147,13 @@ namespace js3d {
             glVertexAttribFormat(1, 3, GL_UNSIGNED_SHORT, GL_TRUE, VERTEX_ATTRIB_COMPACT_NORMAL_OFFSET);
             glVertexAttribFormat(2, 4, GL_UNSIGNED_SHORT, GL_TRUE, VERTEX_ATTRIB_COMPACT_TANGENT_OFFSET);
             glVertexAttribFormat(3, 2, GL_UNSIGNED_SHORT, GL_TRUE, VERTEX_ATTRIB_COMPACT_TEXCOORD_OFFSET);
+            glVertexAttribFormat(4, 2, GL_UNSIGNED_SHORT, GL_TRUE, VERTEX_ATTRIB_COMPACT_USER_OFFSET);
 
             glVertexAttribBinding(0, 0);
             glVertexAttribBinding(1, 0);
             glVertexAttribBinding(2, 0);
             glVertexAttribBinding(3, 0);
+            glVertexAttribBinding(4, 0);
         }
 
         glViewport(0, 0, w, h);
@@ -353,10 +357,11 @@ namespace js3d {
                 if (_activeVertexBuffer != &g_vertexCache._static_cache.vertexBuffer) {
                     _activeVertexBuffer = &g_vertexCache._static_cache.vertexBuffer;
                     _activeVertexBuffer->bind();
-                    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(drawVert_t), (void*)VERTEX_ATTRIB_COMPACT_POSITION_OFFSET);
-                    glVertexAttribPointer(1, 3, GL_UNSIGNED_SHORT, GL_TRUE, sizeof(drawVert_t), (void*)VERTEX_ATTRIB_COMPACT_NORMAL_OFFSET);
-                    glVertexAttribPointer(2, 4, GL_UNSIGNED_SHORT, GL_TRUE, sizeof(drawVert_t), (void*)VERTEX_ATTRIB_COMPACT_TANGENT_OFFSET);
-                    glVertexAttribPointer(3, 2, GL_UNSIGNED_SHORT, GL_TRUE, sizeof(drawVert_t), (void*)VERTEX_ATTRIB_COMPACT_TEXCOORD_OFFSET);
+                    glVertexAttribPointer(0, 3, GL_FLOAT,           GL_FALSE,   sizeof(drawVert_t), (void*)VERTEX_ATTRIB_COMPACT_POSITION_OFFSET);
+                    glVertexAttribPointer(1, 3, GL_UNSIGNED_SHORT,  GL_TRUE,    sizeof(drawVert_t), (void*)VERTEX_ATTRIB_COMPACT_NORMAL_OFFSET);
+                    glVertexAttribPointer(2, 4, GL_UNSIGNED_SHORT,  GL_TRUE,    sizeof(drawVert_t), (void*)VERTEX_ATTRIB_COMPACT_TANGENT_OFFSET);
+                    glVertexAttribPointer(3, 2, GL_UNSIGNED_SHORT,  GL_TRUE,    sizeof(drawVert_t), (void*)VERTEX_ATTRIB_COMPACT_TEXCOORD_OFFSET);
+                    glVertexAttribPointer(4, 2, GL_UNSIGNED_SHORT,  GL_TRUE,    sizeof(drawVert_t), (void*)VERTEX_ATTRIB_COMPACT_USER_OFFSET);
                 }
             }
             else if(_activeVertexLayout != eVertexLayout::DRAW_VERT)

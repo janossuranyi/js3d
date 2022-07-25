@@ -255,14 +255,17 @@ namespace js3d {
 				"layout(location = 1) in vec3 va_normal;\n" \
 				"layout(location = 2) in vec4 va_tangent;\n" \
 				"layout(location = 3) in vec2 va_st;\n\n" \
+				"layout(location = 4) in vec2 va_user;\n\n" \
 				"out vec3 vo_normal;\n" \
 				"out vec4 vo_tangent;\n" \
 				"out vec2 vo_st;\n\n" \
+				"out vec2 vo_user;\n\n" \
 				"void main() {\n" \
 				"\tgl_Position = vec4(va_position, 1.0);\n" \
 				"\tvo_normal = va_normal;\n" \
 				"\tvo_tangent = va_tangent;\n" \
 				"\tvo_st = va_st;\n" \
+				"\tvo_user = va_user;\n" \
 				"}" };
 
 			std::vector<std::string> fs = {
@@ -272,8 +275,9 @@ namespace js3d {
 				"in vec3 vo_normal;\n" \
 				"in vec4 vo_tangent;\n" \
 				"in vec2 vo_st;\n\n" \
+				"in vec2 vo_user;\n\n" \
 				"void main() {\n" \
-				"\tfragColor = vec4(vec3(vo_tangent) * 2.0 - 1.0, 1);\n" \
+				"\tfragColor = vec4(vo_user, 0,1);\n" \
 				"}" };
 
 			if (p.create_program_from_shader_source(vs, fs))

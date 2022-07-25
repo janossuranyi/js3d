@@ -12,10 +12,11 @@ namespace js3d {
 
 	struct drawVert_t
 	{
-		float	position[3];	// 12
-		float	normal[3];		// 12
-		float	tangent[4];		// 16
-		float	st[2];			//  8
+		float		position[3];	// 12
+		float		normal[3];		// 12
+		float		tangent[3];		// 12
+		float		st[2];			//  8
+		uint16_t	user[2];		//  4
 
 		void setTexCoord(const glm::vec2& p0)
 		{
@@ -39,14 +40,6 @@ namespace js3d {
 			tangent[0] = p0[0];
 			tangent[1] = p0[1];
 			tangent[2] = p0[2];
-			tangent[3] = 1.0f;
-		}
-		void setTangent(const glm::vec4& p0)
-		{
-			tangent[0] = p0[0];
-			tangent[1] = p0[1];
-			tangent[2] = p0[2];
-			tangent[3] = p0[3];
 		}
 		glm::vec3 getPosition() const
 		{
@@ -56,9 +49,9 @@ namespace js3d {
 		{
 			return glm::make_vec3(normal);
 		}
-		glm::vec4 getTangent() const
+		glm::vec3 getTangent() const
 		{
-			return glm::make_vec4(tangent);
+			return glm::make_vec3(tangent);
 		}
 		glm::vec2 getTexCoord() const
 		{

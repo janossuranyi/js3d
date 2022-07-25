@@ -23,27 +23,31 @@ int main(int argc, char** argv)
 	rectangle[0].setNormal(vec3(K_ONE, K_ZERO, K_ZERO));
 	rectangle[0].setTangent(vec4(K_ONE, K_ZERO, K_ZERO, K_ONE));
 	rectangle[0].setTextCoord(vec2(K_ZERO, K_ONE));
+	rectangle[0].setUser(vec2(K_ZERO, K_ZERO));
 
 	rectangle[1].setPosition(vec3(K_ONE, K_ONE, K_ZERO));
 	rectangle[1].setNormal(vec3(K_ZERO, K_ONE, K_ZERO));
 	rectangle[1].setTangent(vec4(K_ZERO, K_ONE, K_ZERO, K_ONE));
 	rectangle[1].setTextCoord(vec2(K_ONE, K_ONE));
+	rectangle[1].setUser(vec2(K_ONE/2, K_ZERO));
 
 	rectangle[2].setPosition(vec3(K_ONE, -K_ONE, K_ZERO));
 	rectangle[2].setNormal(vec3(K_ZERO, K_ZERO, K_ONE));
 	rectangle[2].setTangent(vec4(K_ZERO, K_ZERO, K_ONE, K_ONE));
 	rectangle[2].setTextCoord(vec2(K_ONE, K_ZERO));
+	rectangle[0].setUser(vec2(K_ONE, K_ONE/2));
 
 	rectangle[3].setPosition(vec3(-K_ONE, -K_ONE, K_ZERO));
 	rectangle[3].setNormal(vec3(K_ONE, K_ONE, K_ONE));
 	rectangle[3].setTangent(vec4(K_ONE, K_ONE, K_ONE, K_ONE));
 	rectangle[3].setTextCoord(vec2(K_ZERO, K_ZERO));
+	rectangle[4].setUser(vec2(K_ONE, K_ONE));
 
 	rectangle_idx[0] = 0;
 	rectangle_idx[1] = 3;
 	rectangle_idx[2] = 2;
 	
-	rectangle_idx[3] = 0;	
+	rectangle_idx[3] = 0;
 	rectangle_idx[4] = 2;
 	rectangle_idx[5] = 1;
 	
