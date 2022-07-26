@@ -14,9 +14,8 @@ namespace js3d {
 	{
 		float		position[3];	// 12
 		float		normal[3];		// 12
-		float		tangent[3];		// 12
+		float		tangent[4];		// 16
 		float		st[2];			//  8
-		uint16_t	user[2];		//  4
 
 		void setTexCoord(const glm::vec2& p0)
 		{

@@ -15,30 +15,25 @@ namespace js3d {
 
 	struct drawVert_t
 	{
-		float		position[3];	// 12
-		uint16_t	normal[3];		//  6
-		uint16_t	tangent[3];		//  6
+		float		position[4];	// 16
+		uint16_t	normal[4];		//  8
+		uint16_t	tangent[4];		//  8
 		uint16_t	st[2];			//  4
-		uint16_t	user[2];		//  4
 
-		void setUser(const glm::vec2& p0)
-		{
-			glm::vec2 p = glm::clamp(p0, 0.f, 1.0f);
-			user[0] = UNORM_TO_U16(p.x);
-			user[1] = UNORM_TO_U16(p.y);
-		}
-		void setPosition(const glm::vec3& p0)
+		void setPosition(const glm::vec4& p0)
 		{
 			position[0] = p0.x;
 			position[1] = p0.y;
 			position[2] = p0.z;
+			position[3] = p0.w;
 		}
-		void setNormal(const glm::vec3& p0)
+		void setNormal(const glm::vec4& p0)
 		{
-			glm::vec3 p = glm::clamp(p0, -1.0f, 1.0f);
+			glm::vec4 p = glm::clamp(p0, -1.0f, 1.0f);
 			normal[0] = SNORM_TO_U16(p.x);
 			normal[1] = SNORM_TO_U16(p.y);
 			normal[2] = SNORM_TO_U16(p.z);
+			normal[3] = SNORM_TO_U16(p.w);
 		}
 		void setTangent(const glm::vec4& p0)
 		{
@@ -46,6 +41,7 @@ namespace js3d {
 			tangent[0] = SNORM_TO_U16(p.x);
 			tangent[1] = SNORM_TO_U16(p.y);
 			tangent[2] = SNORM_TO_U16(p.z);
+			tangent[2] = SNORM_TO_U16(p.w);
 		}
 		void setTextCoord(const glm::vec2& p0)
 		{
@@ -53,24 +49,26 @@ namespace js3d {
 			st[0] = UNORM_TO_U16(p.x);
 			st[1] = UNORM_TO_U16(p.y);
 		}
-		glm::vec3 getPosition() const
+		glm::vec4 getPosition() const
 		{
-			return glm::make_vec3(position);
+			return glm::make_vec4(position);
 		}
-		glm::vec3 getNormal()
+		glm::vec4 getNormal()
 		{
-			return glm::normalize(glm::vec3(
+			return glm::normalize(glm::vec4(
 				U16_TO_SNORM(normal[0]),
 				U16_TO_SNORM(normal[1]),
-				U16_TO_SNORM(normal[2])
+				U16_TO_SNORM(normal[2]),
+				U16_TO_SNORM(normal[3])
 			));
 		}
-		glm::vec3 getTangent() const
+		glm::vec4 getTangent() const
 		{
-			return glm::normalize(glm::vec3(
+			return glm::normalize(glm::vec4(
 				U16_TO_UNORM(tangent[0]),
 				U16_TO_UNORM(tangent[1]),
-				U16_TO_UNORM(tangent[2])
+				U16_TO_UNORM(tangent[2]),
+				U16_TO_UNORM(tangent[3])
 			));
 		}
 		glm::vec2 getTexCoord() const
@@ -78,13 +76,6 @@ namespace js3d {
 			return glm::normalize(glm::vec2(
 				U16_TO_UNORM(st[0]),
 				U16_TO_UNORM(st[1])
-			));
-		}
-		glm::vec2 getUser() const
-		{
-			return glm::normalize(glm::vec2(
-				U16_TO_UNORM(user[0]),
-				U16_TO_UNORM(user[1])
 			));
 		}
 	}; // 32

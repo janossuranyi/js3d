@@ -5,6 +5,7 @@
 #include <SDL.h>
 #include <glm/glm.hpp>
 #include "js3d.h"
+
 using namespace js3d;
 using namespace glm;
 
@@ -16,32 +17,34 @@ elementIndex_t* rectangle_idx = (elementIndex_t*)Mem_Alloc16(6 * sizeof(elementI
 const float K_ONE = 1.0f;
 const float K_ZERO = 0.0f;
 
+namespace js3d {
+	FileSystem g_fileSystem;
+}
+
 
 int main(int argc, char** argv)
 {
-	rectangle[0].setPosition(vec3(-K_ONE, K_ONE, K_ZERO));
-	rectangle[0].setNormal(vec3(K_ONE, K_ZERO, K_ZERO));
+	g_fileSystem.set_working_dir("d:/src/js3d/assets");
+
+	rectangle[0].setPosition(vec4(-K_ONE, K_ONE, K_ZERO, K_ONE));
+	rectangle[0].setNormal(vec4(K_ZERO, K_ZERO, K_ONE, K_ZERO));
 	rectangle[0].setTangent(vec4(K_ONE, K_ZERO, K_ZERO, K_ONE));
 	rectangle[0].setTextCoord(vec2(K_ZERO, K_ONE));
-	rectangle[0].setUser(vec2(K_ZERO, K_ZERO));
 
-	rectangle[1].setPosition(vec3(K_ONE, K_ONE, K_ZERO));
-	rectangle[1].setNormal(vec3(K_ZERO, K_ONE, K_ZERO));
+	rectangle[1].setPosition(vec4(K_ONE, K_ONE, K_ZERO, K_ONE));
+	rectangle[1].setNormal(vec4(K_ZERO, K_ZERO, K_ONE, K_ZERO));
 	rectangle[1].setTangent(vec4(K_ZERO, K_ONE, K_ZERO, K_ONE));
 	rectangle[1].setTextCoord(vec2(K_ONE, K_ONE));
-	rectangle[1].setUser(vec2(K_ONE/2, K_ZERO));
 
-	rectangle[2].setPosition(vec3(K_ONE, -K_ONE, K_ZERO));
-	rectangle[2].setNormal(vec3(K_ZERO, K_ZERO, K_ONE));
+	rectangle[2].setPosition(vec4(K_ONE, -K_ONE, K_ZERO, K_ONE));
+	rectangle[2].setNormal(vec4(K_ZERO, K_ZERO, K_ZERO, K_ZERO));
 	rectangle[2].setTangent(vec4(K_ZERO, K_ZERO, K_ONE, K_ONE));
 	rectangle[2].setTextCoord(vec2(K_ONE, K_ZERO));
-	rectangle[0].setUser(vec2(K_ONE, K_ONE/2));
 
-	rectangle[3].setPosition(vec3(-K_ONE, -K_ONE, K_ZERO));
-	rectangle[3].setNormal(vec3(K_ONE, K_ONE, K_ONE));
+	rectangle[3].setPosition(vec4(-K_ONE, -K_ONE, K_ZERO, K_ONE));
+	rectangle[3].setNormal(vec4(K_ZERO, K_ZERO, K_ZERO, K_ZERO));
 	rectangle[3].setTangent(vec4(K_ONE, K_ONE, K_ONE, K_ONE));
 	rectangle[3].setTextCoord(vec2(K_ZERO, K_ZERO));
-	rectangle[4].setUser(vec2(K_ONE, K_ONE));
 
 	rectangle_idx[0] = 0;
 	rectangle_idx[1] = 3;
