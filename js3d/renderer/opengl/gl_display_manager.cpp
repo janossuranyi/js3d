@@ -41,6 +41,7 @@ namespace js3d {
         _activeIndexBuffer = nullptr;
         _activeVertexBuffer = nullptr;
         _activeVertexLayout = eVertexLayout::UNDEFINED;
+        _vao = 0xFFFF;
 	}
 
     DisplayManager::~DisplayManager()
@@ -132,8 +133,12 @@ namespace js3d {
             warning("OGL debug output not supported!");
         }
 
-        glCreateVertexArrays(1, &_vao);
-        glBindVertexArray(_vao);
+        // Bind the default Vertex array object
+        if (glVersion() <= 330)
+        {
+            glCreateVertexArrays(1, &_vao);
+            glBindVertexArray(_vao);
+        }
 
         glEnableVertexAttribArray(0);
         glEnableVertexAttribArray(1);
@@ -157,6 +162,7 @@ namespace js3d {
         }
 
         glViewport(0, 0, w, h);
+        glScissor(0, 0, w, h);
         //glLineWidth(4.0f);
 
         _initialized = true;
@@ -167,7 +173,7 @@ namespace js3d {
     void DisplayManager::shutdown()
     {
         if (_initialized) {
-            glDeleteVertexArrays(1, &_vao);
+            if (_vao != 0xFFFF) glDeleteVertexArrays(1, &_vao);
             SDL_GL_DeleteContext(_gl_context);
             SDL_DestroyWindow(_sdl_window);
         }
@@ -319,6 +325,31 @@ namespace js3d {
         // set material
         // ...
 
+        if (glVersion() < 430)
+        {
+            //glBindVertexArray(vao);
+            if (_activeVertexBuffer != &g_vertexCache._static_cache.vertexBuffer) {
+                _activeVertexBuffer = &g_vertexCache._static_cache.vertexBuffer;
+                _activeVertexBuffer->bind();
+                glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(drawVert_t), (void*)VERTEX_ATTRIB_COMPACT_POSITION_OFFSET);
+                glVertexAttribPointer(1, 3, GL_UNSIGNED_SHORT, GL_TRUE, sizeof(drawVert_t), (void*)VERTEX_ATTRIB_COMPACT_NORMAL_OFFSET);
+                glVertexAttribPointer(2, 4, GL_UNSIGNED_SHORT, GL_TRUE, sizeof(drawVert_t), (void*)VERTEX_ATTRIB_COMPACT_TANGENT_OFFSET);
+                glVertexAttribPointer(3, 2, GL_UNSIGNED_SHORT, GL_TRUE, sizeof(drawVert_t), (void*)VERTEX_ATTRIB_COMPACT_TEXCOORD_OFFSET);
+                glVertexAttribPointer(4, 2, GL_UNSIGNED_SHORT, GL_TRUE, sizeof(drawVert_t), (void*)VERTEX_ATTRIB_COMPACT_USER_OFFSET);
+            }
+        }
+        else if (_activeVertexLayout != eVertexLayout::DRAW_VERT)
+        {
+            glBindVertexBuffer(0, g_vertexCache._static_cache.vertexBuffer._bufferId, 0, sizeof(drawVert_t));
+            _activeVertexLayout = eVertexLayout::DRAW_VERT;
+        }
+
+        if (_activeIndexBuffer != &g_vertexCache._static_cache.indexBuffer)
+        {
+            _activeIndexBuffer = &g_vertexCache._static_cache.indexBuffer;
+            _activeIndexBuffer->bind();
+        }
+
         triSurf_t* triangles = surf.vertexData;
         if (triangles == nullptr)
         {
@@ -336,6 +367,7 @@ namespace js3d {
         g_vertexCache.decode_handle(triangles->idxHandle, indexOffset, indexSize, isStatic);
         g_vertexCache.decode_handle(triangles->vertHandle, vertexOffset, vertexSize, isStatic);
 
+
         GLuint elemType = GL_TRIANGLES;
         switch (surf.elementType)
         {
@@ -347,34 +379,6 @@ namespace js3d {
             break;
         default:
             elemType = GL_TRIANGLES;
-        }
-
-        if (isStatic)
-        {
-            if (glVersion() < 430)
-            {
-                //glBindVertexArray(vao);
-                if (_activeVertexBuffer != &g_vertexCache._static_cache.vertexBuffer) {
-                    _activeVertexBuffer = &g_vertexCache._static_cache.vertexBuffer;
-                    _activeVertexBuffer->bind();
-                    glVertexAttribPointer(0, 3, GL_FLOAT,           GL_FALSE,   sizeof(drawVert_t), (void*)VERTEX_ATTRIB_COMPACT_POSITION_OFFSET);
-                    glVertexAttribPointer(1, 3, GL_UNSIGNED_SHORT,  GL_TRUE,    sizeof(drawVert_t), (void*)VERTEX_ATTRIB_COMPACT_NORMAL_OFFSET);
-                    glVertexAttribPointer(2, 4, GL_UNSIGNED_SHORT,  GL_TRUE,    sizeof(drawVert_t), (void*)VERTEX_ATTRIB_COMPACT_TANGENT_OFFSET);
-                    glVertexAttribPointer(3, 2, GL_UNSIGNED_SHORT,  GL_TRUE,    sizeof(drawVert_t), (void*)VERTEX_ATTRIB_COMPACT_TEXCOORD_OFFSET);
-                    glVertexAttribPointer(4, 2, GL_UNSIGNED_SHORT,  GL_TRUE,    sizeof(drawVert_t), (void*)VERTEX_ATTRIB_COMPACT_USER_OFFSET);
-                }
-            }
-            else if(_activeVertexLayout != eVertexLayout::DRAW_VERT)
-            {
-                glBindVertexBuffer(0, g_vertexCache._static_cache.vertexBuffer._bufferId, 0, sizeof(drawVert_t));
-                _activeVertexLayout = eVertexLayout::DRAW_VERT;
-            }
-
-            if (_activeIndexBuffer != &g_vertexCache._static_cache.indexBuffer)
-            {
-                _activeIndexBuffer = &g_vertexCache._static_cache.indexBuffer;
-                _activeIndexBuffer->bind();
-            }
         }
 
         glDrawElementsBaseVertex(elemType, triangles->numIndices, GL_UNSIGNED_SHORT, (void*)indexOffset, GLint(vertexOffset / sizeof(drawVert_t)));
