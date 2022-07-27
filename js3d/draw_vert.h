@@ -15,12 +15,12 @@ namespace js3d {
 		float		position[3];	// 12
 		float		normal[3];		// 12
 		float		tangent[4];		// 16
-		float		st[2];			//  8
+		float		uv[2];			//  8
 
 		void setTexCoord(const glm::vec2& p0)
 		{
-			st[0] = p0[0];
-			st[1] = p0[1];
+			uv[0] = p0[0];
+			uv[1] = p0[1];
 		}
 		void setPosition(const glm::vec3& p0)
 		{
@@ -54,7 +54,7 @@ namespace js3d {
 		}
 		glm::vec2 getTexCoord() const
 		{
-			return glm::make_vec2(st);
+			return glm::make_vec2(uv);
 		}
 	}; // 48
 

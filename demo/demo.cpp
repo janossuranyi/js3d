@@ -27,24 +27,24 @@ int main(int argc, char** argv)
 	g_fileSystem.set_working_dir("d:/src/js3d/assets");
 
 	rectangle[0].setPosition(vec4(-K_ONE, K_ONE, K_ZERO, K_ONE));
-	rectangle[0].setNormal(vec4(K_ZERO, K_ZERO, K_ONE, K_ZERO));
-	rectangle[0].setTangent(vec4(K_ONE, K_ZERO, K_ZERO, K_ONE));
+	rectangle[0].setQTangent(vec4(K_ONE, K_ZERO, K_ZERO, K_ONE));
 	rectangle[0].setTextCoord(vec2(K_ZERO, K_ONE));
+	rectangle[0].setColor(vec4(1.0f, 1.0f, 1.0f, 1.0f));
 
 	rectangle[1].setPosition(vec4(K_ONE, K_ONE, K_ZERO, K_ONE));
-	rectangle[1].setNormal(vec4(K_ZERO, K_ZERO, K_ONE, K_ZERO));
-	rectangle[1].setTangent(vec4(K_ZERO, K_ONE, K_ZERO, K_ONE));
+	rectangle[1].setQTangent(vec4(K_ZERO, K_ONE, K_ZERO, K_ONE));
 	rectangle[1].setTextCoord(vec2(K_ONE, K_ONE));
+	rectangle[1].setColor(vec4(1.0f, 1.0f, 1.0f, 1.0f));
 
 	rectangle[2].setPosition(vec4(K_ONE, -K_ONE, K_ZERO, K_ONE));
-	rectangle[2].setNormal(vec4(K_ZERO, K_ZERO, K_ZERO, K_ZERO));
-	rectangle[2].setTangent(vec4(K_ZERO, K_ZERO, K_ONE, K_ONE));
+	rectangle[2].setQTangent(vec4(K_ZERO, K_ZERO, K_ONE, K_ONE));
 	rectangle[2].setTextCoord(vec2(K_ONE, K_ZERO));
+	rectangle[2].setColor(vec4(0.0f, 0.0f, 0.0f, 1.0f));
 
 	rectangle[3].setPosition(vec4(-K_ONE, -K_ONE, K_ZERO, K_ONE));
-	rectangle[3].setNormal(vec4(K_ZERO, K_ZERO, K_ZERO, K_ZERO));
-	rectangle[3].setTangent(vec4(K_ONE, K_ONE, K_ONE, K_ONE));
+	rectangle[3].setQTangent(vec4(K_ONE, K_ONE, K_ONE, K_ONE));
 	rectangle[3].setTextCoord(vec2(K_ZERO, K_ZERO));
+	rectangle[3].setColor(vec4(0.0f, 0.0f, 0.0f, 1.0f));
 
 	rectangle_idx[0] = 0;
 	rectangle_idx[1] = 3;
@@ -80,7 +80,21 @@ int main(int argc, char** argv)
 		{
 			info("%d key pressed/released", e->key.keysym.sym);
 		}
-	});
+		else if (e->type == SDL_WINDOWEVENT)
+		{
+			switch (e->window.event)
+			{
+			case SDL_WINDOWEVENT_RESIZED:
+			case SDL_WINDOWEVENT_SIZE_CHANGED:
+				info("Window %d resized to %dx%d",
+					e->window.windowID, e->window.data1,
+					e->window.data2);
+
+				g_displayManager.set_viewport(0, 0, e->window.data1, e->window.data2);
+				break;
+			}
+		}
+		});
 
 	g_displayManager.set_main_callback([&]() {
 		g_displayManager.draw_surface(surf);

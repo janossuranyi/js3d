@@ -5,14 +5,14 @@
 #include "render_common.h"
 
 #define VERTEX_ATTRIB_POSITION_INDEX	(0)
-#define VERTEX_ATTRIB_NORMAL_INDEX		(1)
-#define VERTEX_ATTRIB_TANGENT_INDEX		(2)
-#define VERTEX_ATTRIB_TEXCOORD_INDEX	(3)
+#define VERTEX_ATTRIB_QTANGENT_INDEX	(1)
+#define VERTEX_ATTRIB_TEXCOORD_INDEX	(2)
+#define VERTEX_ATTRIB_COLOR_INDEX	    (3)
 
 #define VERTEX_ATTRIB_POSITION_OFFSET	(0)
-#define VERTEX_ATTRIB_NORMAL_OFFSET		(16)
-#define VERTEX_ATTRIB_TANGENT_OFFSET	(24)
-#define VERTEX_ATTRIB_TEXCOORD_OFFSET	(32)
+#define VERTEX_ATTRIB_QTANGENT_OFFSET	(16)
+#define VERTEX_ATTRIB_TEXCOORD_OFFSET	(24)
+#define VERTEX_ATTRIB_COLOR_OFFSET	    (28)
 
 namespace js3d {
     
@@ -142,10 +142,10 @@ namespace js3d {
 
         if (glVersion() >= 430)
         {
-            glVertexAttribFormat(0, 3, GL_FLOAT, GL_FALSE, VERTEX_ATTRIB_POSITION_OFFSET);
-            glVertexAttribFormat(1, 3, GL_UNSIGNED_SHORT, GL_TRUE, VERTEX_ATTRIB_NORMAL_OFFSET);
-            glVertexAttribFormat(2, 4, GL_UNSIGNED_SHORT, GL_TRUE, VERTEX_ATTRIB_TANGENT_OFFSET);
-            glVertexAttribFormat(3, 2, GL_UNSIGNED_SHORT, GL_TRUE, VERTEX_ATTRIB_TEXCOORD_OFFSET);
+            glVertexAttribFormat(0, 4, GL_FLOAT, GL_FALSE, VERTEX_ATTRIB_POSITION_OFFSET);
+            glVertexAttribFormat(1, 4, GL_UNSIGNED_SHORT, GL_TRUE, VERTEX_ATTRIB_QTANGENT_OFFSET);
+            glVertexAttribFormat(2, 2, GL_UNSIGNED_SHORT, GL_TRUE, VERTEX_ATTRIB_TEXCOORD_OFFSET);
+            glVertexAttribFormat(3, 4, GL_UNSIGNED_BYTE, GL_TRUE, VERTEX_ATTRIB_COLOR_OFFSET);
 
             glVertexAttribBinding(0, 0);
             glVertexAttribBinding(1, 0);
@@ -155,7 +155,7 @@ namespace js3d {
 
         glViewport(0, 0, w, h);
         glScissor(0, 0, w, h);
-        //glEnable(GL_FRAMEBUFFER_SRGB);
+        glDisable(GL_FRAMEBUFFER_SRGB);
 
         //glLineWidth(4.0f);
 
@@ -313,6 +313,11 @@ namespace js3d {
         }
     }
 
+    void DisplayManager::set_viewport(int x, int y, int w, int h)
+    {
+        glViewport(x, y, w, h);
+    }
+
     void DisplayManager::draw_surface(const drawSurface_t& surf)
     {
         if (!_initialized) return;
@@ -325,10 +330,10 @@ namespace js3d {
             if (_activeVertexBuffer != &g_vertexCache._static_cache.vertexBuffer) {
                 _activeVertexBuffer = &g_vertexCache._static_cache.vertexBuffer;
                 _activeVertexBuffer->bind();
-                glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(drawVert_t), (void*)VERTEX_ATTRIB_POSITION_OFFSET);
-                glVertexAttribPointer(1, 3, GL_UNSIGNED_SHORT, GL_TRUE, sizeof(drawVert_t), (void*)VERTEX_ATTRIB_NORMAL_OFFSET);
-                glVertexAttribPointer(2, 4, GL_UNSIGNED_SHORT, GL_TRUE, sizeof(drawVert_t), (void*)VERTEX_ATTRIB_TANGENT_OFFSET);
-                glVertexAttribPointer(3, 2, GL_UNSIGNED_SHORT, GL_TRUE, sizeof(drawVert_t), (void*)VERTEX_ATTRIB_TEXCOORD_OFFSET);
+                glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(drawVert_t),         (void*)VERTEX_ATTRIB_POSITION_OFFSET);
+                glVertexAttribPointer(1, 4, GL_UNSIGNED_SHORT, GL_TRUE, sizeof(drawVert_t), (void*)VERTEX_ATTRIB_QTANGENT_OFFSET);
+                glVertexAttribPointer(2, 2, GL_UNSIGNED_SHORT, GL_TRUE, sizeof(drawVert_t), (void*)VERTEX_ATTRIB_TEXCOORD_OFFSET);
+                glVertexAttribPointer(3, 4, GL_UNSIGNED_BYTE,  GL_TRUE, sizeof(drawVert_t), (void*)VERTEX_ATTRIB_COLOR_OFFSET);
             }
         }
         else if (_activeVertexLayout != eVertexLayout::DRAW_VERT)

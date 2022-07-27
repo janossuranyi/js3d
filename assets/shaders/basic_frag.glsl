@@ -2,21 +2,24 @@
 
 out vec4 fragColor;
 
-in vec4 vo_normal;
-in vec4 vo_tangent;
-in vec2 vo_st;
 in vec4 vo_position;
+in vec4 vo_qtangent;
+in vec2 vo_st;
+in vec4 vo_color;
 
-vec3 linear2SRGB(vec3 p) {
-	float k = 2.2;
-	return vec3(
-		pow(p.r, k),
-		pow(p.g, k),
-		pow(p.b, k)
+const float kGamma = 2.2;
+
+vec4 rgb_to_srgb(vec4 p) {
+	return vec4(
+		pow(p.r, kGamma),
+		pow(p.g, kGamma),
+		pow(p.b, kGamma),
+		p.a
 	);
 }
 
 void main() {
-	//linear2SRGB( 2*vo_normal-1 )
-	fragColor = 2*vo_normal-1 ;
+	
+	vec4 color = vo_color;
+	fragColor = rgb_to_srgb(color);
 }
