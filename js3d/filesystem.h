@@ -5,6 +5,7 @@
 #include <filesystem>
 #include <functional>
 #include <string>
+#include <stb_image.h>
 
 namespace js3d {
 
@@ -20,6 +21,8 @@ namespace js3d {
 		std::vector<uint8_t> read_binary_file(const std::string& aFileName);
 		std::vector<std::string> get_directory_entries(const std::string& dirname, const char* filter = nullptr);
 		void get_directory_entries(const std::string& dirname, const std::function<void(const std::string&)>& fn, const char* filter = nullptr);
+		bool load_image_base(const std::string& filename, int& w, int& h, int& channels, unsigned char** data);
+		void free_image(void* data);
 	private:
 		std::filesystem::path m_working_dir;
 	};

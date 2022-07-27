@@ -11,7 +11,7 @@
 #define U16_TO_UNORM(x) (x / 65535.0f)
 #define UNORM_TO_U16(x) ((uint16_t)(x * 65535.0f))
 #define UNORM_TO_U8(x) ((uint8_t) (x * 255.0f))
-#define U8_TO_UNORM(x) ((uint8_t) x / 255.0f)
+#define U8_TO_UNORM(x) (x / 255.0f)
 
 namespace js3d {
 
@@ -35,7 +35,7 @@ namespace js3d {
 			qtangent[0] = SNORM_TO_U16(p.x);
 			qtangent[1] = SNORM_TO_U16(p.y);
 			qtangent[2] = SNORM_TO_U16(p.z);
-			qtangent[2] = SNORM_TO_U16(p.w);
+			qtangent[3] = SNORM_TO_U16(p.w);
 		}
 		void setTextCoord(const glm::vec2& p0)
 		{
@@ -70,6 +70,16 @@ namespace js3d {
 				U16_TO_UNORM(uv[0]),
 				U16_TO_UNORM(uv[1])
 			));
+		}
+		glm::vec4 getColor() const
+		{
+			return glm::normalize(glm::vec4(
+				U8_TO_UNORM(color[0]),
+				U8_TO_UNORM(color[1]),
+				U8_TO_UNORM(color[2]),
+				U8_TO_UNORM(color[3])
+			));
+
 		}
 	}; // 32
 }

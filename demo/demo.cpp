@@ -28,22 +28,22 @@ int main(int argc, char** argv)
 
 	rectangle[0].setPosition(vec4(-K_ONE, K_ONE, K_ZERO, K_ONE));
 	rectangle[0].setQTangent(vec4(K_ONE, K_ZERO, K_ZERO, K_ONE));
-	rectangle[0].setTextCoord(vec2(K_ZERO, K_ONE));
+	rectangle[0].setTextCoord(vec2(0, 1));
 	rectangle[0].setColor(vec4(1.0f, 1.0f, 1.0f, 1.0f));
 
 	rectangle[1].setPosition(vec4(K_ONE, K_ONE, K_ZERO, K_ONE));
 	rectangle[1].setQTangent(vec4(K_ZERO, K_ONE, K_ZERO, K_ONE));
-	rectangle[1].setTextCoord(vec2(K_ONE, K_ONE));
+	rectangle[1].setTextCoord(vec2(1, 1));
 	rectangle[1].setColor(vec4(1.0f, 1.0f, 1.0f, 1.0f));
 
 	rectangle[2].setPosition(vec4(K_ONE, -K_ONE, K_ZERO, K_ONE));
 	rectangle[2].setQTangent(vec4(K_ZERO, K_ZERO, K_ONE, K_ONE));
-	rectangle[2].setTextCoord(vec2(K_ONE, K_ZERO));
+	rectangle[2].setTextCoord(vec2(1, 0));
 	rectangle[2].setColor(vec4(0.0f, 0.0f, 0.0f, 1.0f));
 
 	rectangle[3].setPosition(vec4(-K_ONE, -K_ONE, K_ZERO, K_ONE));
 	rectangle[3].setQTangent(vec4(K_ONE, K_ONE, K_ONE, K_ONE));
-	rectangle[3].setTextCoord(vec2(K_ZERO, K_ZERO));
+	rectangle[3].setTextCoord(vec2(0,0));
 	rectangle[3].setColor(vec4(0.0f, 0.0f, 0.0f, 1.0f));
 
 	rectangle_idx[0] = 0;

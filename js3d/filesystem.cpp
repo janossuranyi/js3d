@@ -114,4 +114,25 @@ namespace js3d {
 			fn(e); 
 		}
 	}
+	bool FileSystem::load_image_base(const std::string& filename, int& w, int& h, int& channels, unsigned char** data)
+	{
+		std::string abspath = resolve(filename);
+		int _w, _h, _n;
+		stbi_set_flip_vertically_on_load(true);
+
+		*data = stbi_load(abspath.c_str(), &_w, &_h, &_n, 0);
+		if (*data != nullptr)
+		{
+			w = _w;
+			h = _h;
+			channels = _n;
+			return true;
+		}
+
+		return false;
+	}
+	void FileSystem::free_image(void* data)
+	{
+		stbi_image_free(data);
+	}
 }
