@@ -8,6 +8,9 @@ in vec2 vo_st;
 in vec4 vo_color;
 
 const float kGamma = 2.2;
+const float kInvGamma = 1/2.2;
+
+uniform sampler2D samp0;
 
 vec4 rgb_to_srgb(vec4 p) {
 	return vec4(
@@ -18,8 +21,19 @@ vec4 rgb_to_srgb(vec4 p) {
 	);
 }
 
+vec4 srgb_to_rgb(vec4 p) {
+	return vec4(
+		pow(p.r, kInvGamma),
+		pow(p.g, kInvGamma),
+		pow(p.b, kInvGamma),
+		p.a
+	);
+}
+
 void main() {
 	
-	vec4 color = vo_color;
-	fragColor = rgb_to_srgb(color);
+	vec4 color = texture( samp0, vo_st*2 - vec2(0.5,0.5));
+//	fragColor = rgb_to_srgb( color * vo_color );
+	fragColor = color * vo_color;
+	
 }

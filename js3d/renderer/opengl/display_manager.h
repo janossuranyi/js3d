@@ -29,6 +29,8 @@ namespace js3d {
 		void run();
 
 		void set_viewport(int x, int y, int w, int h);
+		void set_scissor(int x, int y, int w, int h);
+
 		void draw_surface(const drawSurface_t& surf);
 
 		inline int height() const { return _win_h; }

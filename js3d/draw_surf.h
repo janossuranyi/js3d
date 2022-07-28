@@ -3,12 +3,14 @@
 
 #include "render_common.h"
 #include "tri_surf.h"
+#include "texture.h"
 
 namespace js3d {
 	struct drawSurface_t
 	{
 		eDrawElementType elementType;
 		triSurf_t* vertexData;
+		Texture* diffuse;
 		// material_t* material;
 	};
 

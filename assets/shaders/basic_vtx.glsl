@@ -15,6 +15,6 @@ void main() {
 
 	vo_position = va_position;
 	vo_qtangent = va_qtangent;
-	vo_st = va_st;
+	vo_st = va_st * 64;
 	vo_color = va_color;
 } 

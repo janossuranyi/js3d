@@ -26,23 +26,39 @@ namespace js3d {
 	bool Texture::create_2d_default(int w, int h, int channels, const void* bytes)
 	{
 		GLuint texid;
-		
+		GLenum er;
+		GLenum format = channels == 4 ? GL_RGBA : GL_RGB;
+		float const b_Color[] = {0.2f, 0.2f, 0.2f, 1.0f};
+
+		while (glGetError() != GL_NO_ERROR) {};
+
 		glGenTextures(1, &texid);
 		glBindTexture(GL_TEXTURE_2D, texid);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, b_Color);
 
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, channels == 4 ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE, bytes);
-		if (bytes)
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, format, GL_UNSIGNED_BYTE, bytes);
+
+		er = glGetError();
+
+		if (bytes && er == GL_NO_ERROR)
 		{
 			glGenerateMipmap(GL_TEXTURE_2D);
 		}
 		
 		_textureId = texid;
 
-		return true;
+		return er == GL_NO_ERROR;
+	}
+
+	void Texture::bind(int unit)
+	{
+		glActiveTexture(GL_TEXTURE0 + unit);
+		glBindTexture(GL_TEXTURE_2D, _textureId);
 	}
 
 }

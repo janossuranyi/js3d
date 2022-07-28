@@ -72,7 +72,7 @@ namespace js3d {
             SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, multisample);
         }
 
-        _sdl_window = SDL_CreateWindow("SDL Tutorial", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, w, h, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
+        _sdl_window = SDL_CreateWindow("OpenGL surface", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, w, h, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
         if (_sdl_window == NULL)
         {
             fatal_error("Window could not be created! SDL Error: %s", SDL_GetError());
@@ -155,7 +155,7 @@ namespace js3d {
 
         glViewport(0, 0, w, h);
         glScissor(0, 0, w, h);
-        glDisable(GL_FRAMEBUFFER_SRGB);
+        //glEnable(GL_FRAMEBUFFER_SRGB);
 
         //glLineWidth(4.0f);
 
@@ -318,6 +318,11 @@ namespace js3d {
         glViewport(x, y, w, h);
     }
 
+    void DisplayManager::set_scissor(int x, int y, int w, int h)
+    {
+        glScissor(x, y, w, h);
+    }
+
     void DisplayManager::draw_surface(const drawSurface_t& surf)
     {
         if (!_initialized) return;
@@ -378,6 +383,8 @@ namespace js3d {
         default:
             elemType = GL_TRIANGLES;
         }
+
+        if (surf.diffuse) surf.diffuse->bind(0);
 
         glDrawElementsBaseVertex(elemType, triangles->numIndices, GL_UNSIGNED_SHORT, (void*)indexOffset, GLint(vertexOffset / sizeof(drawVert_t)));
     }
