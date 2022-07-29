@@ -7,6 +7,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "math_vector.h"
+
 #define U16_TO_SNORM(x) ((2 * x / 65535.0f) - 1.0f)
 #define SNORM_TO_U16(x) ((uint16_t) ((1.0f + x) * 0.5f * 65535.0f))
 #define U16_TO_UNORM(x) (x / 65535.0f)
@@ -39,19 +41,27 @@ namespace js3d {
 			{
 				qTangent = -qTangent;
 			}
-			const float bias = 1.0f / 65535.0f;
+
+			const float bias = 1.0f / 32767.0f;
 
 			if (qTangent.w < bias)
 			{
-				const double normFactor = std::sqrt(1.0 - bias * bias);
+				const float normFactor = std::sqrtf(1.0f - bias * bias);
 				qTangent.w = bias;
 				qTangent.x *= normFactor;
 				qTangent.y *= normFactor;
 				qTangent.z *= normFactor;
 			}
 
-			_glm vec3 naturalBinormal = 
+			_glm vec3 naturalBinormal = _glm cross(tangent, normal);
+			if (_glm dot(naturalBinormal, biTangent) <= 0)
+			{
+				qTangent = -qTangent;
+			}
+
+			setQTangent(qTangent);
 		}
+
 		void setPosition(const _glm vec4& p0)
 		{
 			position[0] = p0.x;
@@ -59,13 +69,12 @@ namespace js3d {
 			position[2] = p0.z;
 			position[3] = p0.w;
 		}
-		void setQTangent(const _glm vec4& p0)
+		void setQTangent(const _glm quat& p0)
 		{
-			glm::vec4 p = _glm clamp(p0, -1.0f, 1.0f);
-			qtangent[0] = SNORM_TO_U16(p.x);
-			qtangent[1] = SNORM_TO_U16(p.y);
-			qtangent[2] = SNORM_TO_U16(p.z);
-			qtangent[3] = SNORM_TO_U16(p.w);
+			qtangent[0] = floatToSnorm16(p0.x);
+			qtangent[1] = floatToSnorm16(p0.y);
+			qtangent[2] = floatToSnorm16(p0.z);
+			qtangent[3] = floatToSnorm16(p0.w);
 		}
 		void setTextCoord(const _glm vec2& p0)
 		{

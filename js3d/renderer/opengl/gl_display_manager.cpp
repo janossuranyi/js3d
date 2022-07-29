@@ -336,7 +336,7 @@ namespace js3d {
                 _activeVertexBuffer = &g_vertexCache._static_cache.vertexBuffer;
                 _activeVertexBuffer->bind();
                 glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(drawVert_t),         (void*)VERTEX_ATTRIB_POSITION_OFFSET);
-                glVertexAttribPointer(1, 4, GL_UNSIGNED_SHORT, GL_TRUE, sizeof(drawVert_t), (void*)VERTEX_ATTRIB_QTANGENT_OFFSET);
+                glVertexAttribPointer(1, 4, GL_SHORT, GL_TRUE,  sizeof(drawVert_t),         (void*)VERTEX_ATTRIB_QTANGENT_OFFSET);
                 glVertexAttribPointer(2, 2, GL_UNSIGNED_SHORT, GL_TRUE, sizeof(drawVert_t), (void*)VERTEX_ATTRIB_TEXCOORD_OFFSET);
                 glVertexAttribPointer(3, 4, GL_UNSIGNED_BYTE,  GL_TRUE, sizeof(drawVert_t), (void*)VERTEX_ATTRIB_COLOR_OFFSET);
             }
@@ -394,7 +394,12 @@ namespace js3d {
         surf.shader->set_sampler_unit(1, 1);
         surf.shader->set_sampler_unit(2, 2);
 
-        glDrawElementsBaseVertex(elemType, triangles->numIndices, GL_UNSIGNED_SHORT, (void*)indexOffset, GLint(vertexOffset / sizeof(drawVert_t)));
+        glDrawElementsBaseVertex(
+            elemType,
+            triangles->numIndices,
+            GL_UNSIGNED_SHORT,
+            (void*)indexOffset,
+            GLint(vertexOffset / sizeof(drawVert_t)));
     }
 
     DisplayManager g_displayManager;

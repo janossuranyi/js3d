@@ -27,22 +27,22 @@ int main(int argc, char** argv)
 	g_fileSystem.set_working_dir("d:/src/js3d/assets");
 
 	rectangle[0].setPosition(vec4(-K1, K1, K0, K1));
-	rectangle[0].setQTangent(vec4(K1, K0, K0, K1));
+	//rectangle[0].setQTangent(vec4(K1, K0, K0, K1));
 	rectangle[0].setTextCoord(vec2(0, 1) / 64.0f);
 	rectangle[0].setColor(vec4(1.0f, 0.0f, 0.0f, 1.0f));
 
 	rectangle[1].setPosition(vec4(K1, K1, K0, K1));
-	rectangle[1].setQTangent(vec4(K0, K1, K0, K1));
+	//rectangle[1].setQTangent(vec4(K0, K1, K0, K1));
 	rectangle[1].setTextCoord(vec2(1, 1) / 64.0f);
 	rectangle[1].setColor(vec4(0.0f, 1.0f, 0.0f, 1.0f));
 
 	rectangle[2].setPosition(vec4(K1, -K1, K0, K1));
-	rectangle[2].setQTangent(vec4(K0, K0, K1, K1));
+	//rectangle[2].setQTangent(vec4(K0, K0, K1, K1));
 	rectangle[2].setTextCoord(vec2(1, 0) / 64.0f);
 	rectangle[2].setColor(vec4(0.0f, 0.0f, 1.0f, 1.0f));
 
 	rectangle[3].setPosition(vec4(-K1, -K1, K0, K1));
-	rectangle[3].setQTangent(vec4(K1, K1, K1, K1));
+	//rectangle[3].setQTangent(vec4(K1, K1, K1, K1));
 	rectangle[3].setTextCoord(vec2(0, 0) / 64.0f);
 	rectangle[3].setColor(vec4(1.0f, 1.0f, 0.0f, 1.0f));
 
