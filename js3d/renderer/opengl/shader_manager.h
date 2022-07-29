@@ -4,6 +4,7 @@
 #include <string>
 #include <memory>
 #include <GL/glew.h>
+#include <glm/glm.hpp>
 
 namespace js3d {
 
@@ -12,12 +13,17 @@ namespace js3d {
 	class ShaderProgram
 	{
 	public:
-		ShaderProgram() : _progId(0xFFFF) {};
+
+		static const int NUM_INTERNAL_SAMPLERS = 3;
+
+		ShaderProgram();
 		ShaderProgram(ShaderProgram& copied) = delete;
+		ShaderProgram& operator=(ShaderProgram&) = delete;
+		ShaderProgram& operator=(ShaderProgram&&);
 		ShaderProgram(ShaderProgram&& moved);
 		~ShaderProgram();
 
-		bool create_program_from_shader_source(const std::vector<std::string>& vert_sources, const std::vector<std::string>& frag_sources);
+		bool create_program_from_shader_source(int numVertShader, const char** vert_sources, int numFragShader, const char** frag_sources);
 
 		bool set(const std::string name, float p0);
 		bool set(const std::string name, int p0);
@@ -31,6 +37,8 @@ namespace js3d {
 		bool set(const std::string name, const glm::mat4* p, int numMat);
 		bool set(const std::string name, const glm::mat3* p, int numMat);
 
+		void set_sampler_unit(int, int);
+
 		void use();
 		void destroy();
 
@@ -38,6 +46,7 @@ namespace js3d {
 		bool compile_single_stage(GLuint shaderId, eShaderType type);
 		GLint get_uniform_location(const std::string& name);
 		GLuint _progId;
+		GLuint _sampler_lut[NUM_INTERNAL_SAMPLERS]{};
 	};
 
 	class ShaderManager
@@ -51,6 +60,8 @@ namespace js3d {
 		ShaderManager& operator=(ShaderManager&) = delete;
 		ShaderManager& operator=(ShaderManager&&) = delete;
 		
+		ShaderProgram& get_program(int index);
+
 		void init();
 		void use_program(int index);
 

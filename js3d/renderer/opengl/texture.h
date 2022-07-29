@@ -8,7 +8,7 @@ namespace js3d {
 	class Texture
 	{
 	public:
-		Texture() : _textureId(0xFFFF) {}
+		Texture() : _textureId(0xFFFF), _w(-1), _h(-1),_channels(-1) {}
 		Texture(Texture&) = delete;
 		Texture(Texture&&);
 		~Texture() noexcept;

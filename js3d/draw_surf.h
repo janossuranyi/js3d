@@ -4,13 +4,17 @@
 #include "render_common.h"
 #include "tri_surf.h"
 #include "texture.h"
+#include "shader_manager.h"
 
 namespace js3d {
 	struct drawSurface_t
 	{
 		eDrawElementType elementType;
 		triSurf_t* vertexData;
-		Texture* diffuse;
+		Texture* albedo;
+		Texture* metallic_roughness;
+		Texture* normal;
+		ShaderProgram* shader;
 		// material_t* material;
 	};
 

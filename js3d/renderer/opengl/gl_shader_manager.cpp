@@ -1,20 +1,46 @@
 #include "js3d.h"
 #include <memory>
+#include <cstdio>
+
+#undef _std
+#define _std std::
 
 namespace js3d {
 
 	extern FileSystem g_fileSystem;
 
+	ShaderProgram::ShaderProgram()
+	{
+		_progId = 0xffff;
+		for (unsigned i = 0; i < NUM_INTERNAL_SAMPLERS; ++i)
+		{
+			_sampler_lut[i] = 0xffff;
+		}
+	}
+
+	ShaderProgram& ShaderProgram::operator=(ShaderProgram&& moved)
+	{
+		_progId = moved._progId;
+		_std memcpy(_sampler_lut, moved._sampler_lut, sizeof(_sampler_lut));
+		_std memset(moved._sampler_lut, 0xFFFF, sizeof(_sampler_lut));
+
+		moved._progId = 0xFFFF;
+
+		return *this;
+	}
 	ShaderProgram::ShaderProgram(ShaderProgram&& moved)
 	{
 		_progId = moved._progId;
+		_std memcpy(_sampler_lut, moved._sampler_lut, sizeof(_sampler_lut));
+		_std memset(moved._sampler_lut, 0xFFFF, sizeof(_sampler_lut));
+
 		moved._progId = 0xFFFF;
 	}
 	ShaderProgram::~ShaderProgram()
 	{
 		destroy();
 	}
-	bool ShaderProgram::create_program_from_shader_source(const std::vector<std::string>& vert_sources, const std::vector<std::string>& frag_sources)
+	bool ShaderProgram::create_program_from_shader_source(int numVertShader, const char** vert_sources, int numFragShader, const char** frag_sources)
 	{
 		if (_progId != 0xFFFF)
 		{
@@ -24,11 +50,8 @@ namespace js3d {
 		_progId = glCreateProgram();
 
 		GLuint vertShader = glCreateShader(GL_VERTEX_SHADER);
-		for (auto src : vert_sources)
-		{
-			const char* cstr = src.c_str();
-			glShaderSource(vertShader, 1, &cstr, nullptr);
-		}
+		glShaderSource(vertShader, numVertShader, vert_sources, nullptr);
+
 		if (!compile_single_stage(vertShader, eShaderType::VERTEX))
 		{
 			destroy();
@@ -36,11 +59,8 @@ namespace js3d {
 		}
 
 		GLuint fragShader = glCreateShader(GL_FRAGMENT_SHADER);
-		for (auto src : frag_sources)
-		{
-			const char* cstr = src.c_str();
-			glShaderSource(fragShader, 1, &cstr, nullptr);
-		}
+		glShaderSource(fragShader, numFragShader, frag_sources, nullptr);
+
 		if (!compile_single_stage(fragShader, eShaderType::FRAGMENT))
 		{
 			glDeleteShader(vertShader);
@@ -72,6 +92,21 @@ namespace js3d {
 				return false;
 			}
 		}
+
+		glUseProgram(_progId);
+
+		char str[100];
+		for (unsigned i = 0; i < NUM_INTERNAL_SAMPLERS; ++i)
+		{
+			::snprintf(str, 100, "samp%d", i);
+			int loc = get_uniform_location(str);
+			if (loc >= 0)
+			{
+				_sampler_lut[i] = loc;
+			}
+		}
+
+		glUseProgram(0);
 
 		return true;
 	}
@@ -196,6 +231,14 @@ namespace js3d {
 		}
 		return false;
 	}
+	void ShaderProgram::set_sampler_unit(int sampler, int unit)
+	{
+		assert(sampler < 3);
+		if (_sampler_lut[sampler] != 0xFFFF)
+		{
+			glUniform1i(_sampler_lut[sampler], unit);
+		}
+	}
 	void ShaderProgram::use()
 	{
 		assert(_progId != 0xFFFF);
@@ -246,19 +289,31 @@ namespace js3d {
 			return glGetUniformLocation(_progId, name.c_str());
 		}
 	}
+	ShaderProgram& ShaderManager::get_program(int index)
+	{
+		assert(index < _programs.size());
+		return _programs[index];
+	}
+
 	void ShaderManager::init()
 	{
 		{
 			// simple pass-through
 			ShaderProgram p;
-			std::string vtx, frag;
-			g_fileSystem.read_text_file_base("shaders/basic_vtx.glsl", vtx);
+			_std vector<const char*> vs;
+			_std vector<const char*> fs;
+
+			_std string vtx1, vtx2, frag;
+			g_fileSystem.read_text_file_base("shaders/drawvert_layout.inc.glsl", vtx1);
+			g_fileSystem.read_text_file_base("shaders/basic_vtx.glsl", vtx2);
 			g_fileSystem.read_text_file_base("shaders/basic_frag.glsl", frag);
 
-			std::vector<std::string> vs{ vtx };
-			std::vector<std::string> fs{ frag };
+			vs.push_back("#version 330 core\n");
+			vs.push_back(vtx1.c_str());
+			vs.push_back(vtx2.c_str());
+			fs.push_back(frag.c_str());
 
-			if (p.create_program_from_shader_source(vs, fs))
+			if (p.create_program_from_shader_source(vs.size(), vs.data(), fs.size(), fs.data()))
 			{
 				_programs.push_back(std::move(p));
 				int id = int(_programs.size() - 1);

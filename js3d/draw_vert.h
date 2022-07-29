@@ -1,62 +1,116 @@
-#ifndef JS3D_DRAW_VERT_H
-#define JS3D_DRAW_VERT_H
+#ifndef JS3D_DRAW_VERT_COMP_H
+#define JS3D_DRAW_VERT_COMP_H
 
-#error use drawVertCompact
-
+#include <cinttypes>
+#include <cmath>
 #include <algorithm>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include "render_common.h"
+
+#define U16_TO_SNORM(x) ((2 * x / 65535.0f) - 1.0f)
+#define SNORM_TO_U16(x) ((uint16_t) ((1.0f + x) * 0.5f * 65535.0f))
+#define U16_TO_UNORM(x) (x / 65535.0f)
+#define UNORM_TO_U16(x) ((uint16_t)(x * 65535.0f))
+#define UNORM_TO_U8(x) ((uint8_t) (x * 255.0f))
+#define U8_TO_UNORM(x) (x / 255.0f)
+
+#undef _glm
+#define _glm glm::
 
 namespace js3d {
 
 	struct drawVert_t
 	{
-		float		position[3];	// 12
-		float		normal[3];		// 12
-		float		tangent[4];		// 16
-		float		uv[2];			//  8
+		float		position[4];	// 16
+		uint16_t	qtangent[4];	//  8
+		uint16_t	uv[2];			//  4
+		uint8_t		color[4];		//  4
 
-		void setTexCoord(const glm::vec2& p0)
+		void setQTangent(const _glm vec3& normal, const _glm vec3& tangent, const _glm vec3& biTangent)
 		{
-			uv[0] = p0[0];
-			uv[1] = p0[1];
-		}
-		void setPosition(const glm::vec3& p0)
-		{
-			position[0] = p0[0];
-			position[1] = p0[1];
-			position[2] = p0[2];
-		}
-		void setNormal(const glm::vec3& p0)
-		{
-			normal[0] = p0[0];
-			normal[1] = p0[1];
-			normal[2] = p0[2];
-		}
-		void setTangent(const glm::vec3& p0)
-		{
-			tangent[0] = p0[0];
-			tangent[1] = p0[1];
-			tangent[2] = p0[2];
-		}
-		glm::vec3 getPosition() const
-		{
-			return glm::make_vec3(position);
-		}
-		glm::vec3 getNormal()
-		{
-			return glm::make_vec3(normal);
-		}
-		glm::vec3 getTangent() const
-		{
-			return glm::make_vec3(tangent);
-		}
-		glm::vec2 getTexCoord() const
-		{
-			return glm::make_vec2(uv);
-		}
-	}; // 48
+			_glm mat3 tbn;
+			tbn[0] = normal;
+			tbn[1] = tangent;
+			tbn[2] = biTangent;
 
+			_glm quat qTangent(tbn);
+			_glm normalize(qTangent);
+			if (qTangent.w < 0)
+			{
+				qTangent = -qTangent;
+			}
+			const float bias = 1.0f / 65535.0f;
+
+			if (qTangent.w < bias)
+			{
+				const double normFactor = std::sqrt(1.0 - bias * bias);
+				qTangent.w = bias;
+				qTangent.x *= normFactor;
+				qTangent.y *= normFactor;
+				qTangent.z *= normFactor;
+			}
+
+			_glm vec3 naturalBinormal = 
+		}
+		void setPosition(const _glm vec4& p0)
+		{
+			position[0] = p0.x;
+			position[1] = p0.y;
+			position[2] = p0.z;
+			position[3] = p0.w;
+		}
+		void setQTangent(const _glm vec4& p0)
+		{
+			glm::vec4 p = _glm clamp(p0, -1.0f, 1.0f);
+			qtangent[0] = SNORM_TO_U16(p.x);
+			qtangent[1] = SNORM_TO_U16(p.y);
+			qtangent[2] = SNORM_TO_U16(p.z);
+			qtangent[3] = SNORM_TO_U16(p.w);
+		}
+		void setTextCoord(const _glm vec2& p0)
+		{
+			glm::vec2 p = _glm clamp(p0, 0.0f, 1.0f);
+			uv[0] = UNORM_TO_U16(p.x);
+			uv[1] = UNORM_TO_U16(p.y);
+		}
+		void setColor(const _glm vec4& p0)
+		{
+			glm::vec4 p = _glm clamp(p0, 0.0f, 1.0f);
+			color[0] = UNORM_TO_U8(p.r);
+			color[1] = UNORM_TO_U8(p.g);
+			color[2] = UNORM_TO_U8(p.b);
+			color[3] = UNORM_TO_U8(p.a);
+		}
+		_glm vec4 getPosition() const
+		{
+			return _glm make_vec4(position);
+		}
+		_glm vec4 getQTangent() const
+		{
+			return _glm normalize(_glm vec4(
+				U16_TO_UNORM(qtangent[0]),
+				U16_TO_UNORM(qtangent[1]),
+				U16_TO_UNORM(qtangent[2]),
+				U16_TO_UNORM(qtangent[3])
+			));
+		}
+		_glm vec2 getTexCoord() const
+		{
+			return glm::normalize(_glm vec2(
+				U16_TO_UNORM(uv[0]),
+				U16_TO_UNORM(uv[1])
+			));
+		}
+		glm::vec4 getColor() const
+		{
+			return _glm normalize(_glm vec4(
+				U8_TO_UNORM(color[0]),
+				U8_TO_UNORM(color[1]),
+				U8_TO_UNORM(color[2]),
+				U8_TO_UNORM(color[3])
+			));
+
+		}
+	}; // 32
 }
-#endif // !JS3D_DRAW_VERT_H
+#endif // !JS3D_DRAW_VERT_COMP_H

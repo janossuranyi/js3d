@@ -6,7 +6,7 @@
 #include "display_manager.h"
 #include "render_common.h"
 #include "buffer.h"
-#include "draw_vert_comp.h"
+#include "draw_vert.h"
 
 #define CREATE_VERTCACHE_HANDLE(frameNum,offset,bytes) \
 	( (uint64_t) (frameNum & VERTCACHE_FRAME_MASK) << VERTCACHE_FRAME_SHIFT) | \

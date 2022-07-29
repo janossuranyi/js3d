@@ -1,4 +1,5 @@
 #version 330 core
+#extension GL_ARB_explicit_uniform_location : enable
 
 out vec4 fragColor;
 
@@ -11,6 +12,8 @@ const float kGamma = 2.2;
 const float kInvGamma = 1/2.2;
 
 uniform sampler2D samp0;
+uniform sampler2D samp1;
+uniform sampler2D samp2;
 
 vec4 rgb_to_srgb(vec4 p) {
 	return vec4(
@@ -32,8 +35,10 @@ vec4 srgb_to_rgb(vec4 p) {
 
 void main() {
 	
-	vec4 color = texture( samp0, vo_st*2 - vec2(0.5,0.5));
+	vec4 albedo = texture( samp0, vo_st );
+	vec4 metal = texture( samp1, vo_st );
+	vec4 normal = texture( samp2, vo_st );
 //	fragColor = rgb_to_srgb( color * vo_color );
-	fragColor = color * vo_color;
+	fragColor = albedo * vo_color;
 	
 }

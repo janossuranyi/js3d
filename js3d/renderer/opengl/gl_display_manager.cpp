@@ -384,7 +384,15 @@ namespace js3d {
             elemType = GL_TRIANGLES;
         }
 
-        if (surf.diffuse) surf.diffuse->bind(0);
+        surf.shader->use();
+
+        if (surf.albedo) surf.albedo->bind(0);
+        if (surf.metallic_roughness) surf.metallic_roughness->bind(1);
+        if (surf.normal) surf.normal->bind(2);
+
+        surf.shader->set_sampler_unit(0, 0);
+        surf.shader->set_sampler_unit(1, 1);
+        surf.shader->set_sampler_unit(2, 2);
 
         glDrawElementsBaseVertex(elemType, triangles->numIndices, GL_UNSIGNED_SHORT, (void*)indexOffset, GLint(vertexOffset / sizeof(drawVert_t)));
     }

@@ -79,6 +79,9 @@ int main(int argc, char** argv)
 		if (e->type == SDL_KEYDOWN || e->type == SDL_KEYUP)
 		{
 			info("%d key pressed/released", e->key.keysym.sym);
+			if (e->key.keysym.sym == SDLK_ESCAPE) {
+				g_displayManager.post_quit_message();
+			}
 		}
 		else if (e->type == SDL_WINDOWEVENT)
 		{
@@ -103,20 +106,27 @@ int main(int argc, char** argv)
 	g_sm.init();
 	g_sm.use_program(ShaderManager::SHADER_PASSTHROUGH);
 
-	Texture tex;
+	Texture tex1,tex2,tex3;
 
 	int w, h, n;
 	unsigned char* image;
 
-	if (!g_fileSystem.load_image_base("textures/Wall_SOURCE.png", w, h, n, &image)) {
-		error("Cannot load texture");
-	}
-	else
-	{
-		tex.create_2d_default(w, h, n, image);
-		surf.diffuse = &tex;
-	}
+	g_fileSystem.load_image_base("textures/base-white-tile_albedo.png", w, h, n, &image);
+	tex1.create_2d_default(w, h, n, image);
+	surf.albedo = &tex1;
+	g_fileSystem.free_image(image);
 
+	g_fileSystem.load_image_base("textures/base-white-tile_metallic-base-white-tile_roughness.png", w, h, n, &image);
+	tex2.create_2d_default(w, h, n, image);
+	surf.metallic_roughness = &tex2;
+	g_fileSystem.free_image(image);
+
+	g_fileSystem.load_image_base("textures/base-white-tile_normal-ogl.png", w, h, n, &image);
+	tex3.create_2d_default(w, h, n, image);
+	surf.normal = &tex3;
+	g_fileSystem.free_image(image);
+
+	surf.shader = &g_sm.get_program(ShaderManager::SHADER_PASSTHROUGH);
 	
 	g_displayManager.run();
 
