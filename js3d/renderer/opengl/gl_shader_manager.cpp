@@ -1,6 +1,7 @@
 #include "js3d.h"
 #include <memory>
 #include <cstdio>
+#include <string>
 
 #undef _std
 #define _std std::
@@ -8,6 +9,20 @@
 namespace js3d {
 
 	extern FileSystem g_fileSystem;
+
+	struct internalShader_t {
+		char* name;
+		int index;
+		vertexLayout_t vertexLayout;
+
+	};
+
+	internalShader_t internalShaders[] = {
+		{"default_pbr",		DEFAULT_PBR_SHADER,		VERTEX_LAYOUT_DRAW_VERT},
+		{"default_depth",	DEFAULT_DEPTH_SHADER,	VERTEX_LAYOUT_DRAW_VERT}
+	};
+
+	const int NUM_INTERNAL_SHADERS = sizeof(internalShaders) / sizeof(internalShaders[0]);
 
 	ShaderProgram::ShaderProgram()
 	{
@@ -52,7 +67,7 @@ namespace js3d {
 		GLuint vertShader = glCreateShader(GL_VERTEX_SHADER);
 		glShaderSource(vertShader, numVertShader, vert_sources, nullptr);
 
-		if (!compile_single_stage(vertShader, eShaderType::VERTEX))
+		if (!compile_single_stage(vertShader, VERTEX_SHADER))
 		{
 			destroy();
 			return false;
@@ -61,7 +76,7 @@ namespace js3d {
 		GLuint fragShader = glCreateShader(GL_FRAGMENT_SHADER);
 		glShaderSource(fragShader, numFragShader, frag_sources, nullptr);
 
-		if (!compile_single_stage(fragShader, eShaderType::FRAGMENT))
+		if (!compile_single_stage(fragShader, FRAGMENT_SHADER))
 		{
 			glDeleteShader(vertShader);
 			destroy();
@@ -110,7 +125,7 @@ namespace js3d {
 
 		return true;
 	}
-	bool ShaderProgram::set(const std::string name, float p0)
+	bool ShaderProgram::set(const std::string name, float p0) const
 	{
 		assert(_progId != 0xFFFF);
 
@@ -121,7 +136,7 @@ namespace js3d {
 		}
 		return false;
 	}
-	bool ShaderProgram::set(const std::string name, int p0)
+	bool ShaderProgram::set(const std::string name, int p0) const
 	{
 		assert(_progId != 0xFFFF);
 
@@ -132,7 +147,7 @@ namespace js3d {
 		}
 		return false;
 	}
-	bool ShaderProgram::set(const std::string name, const float* ptr, int numFloats)
+	bool ShaderProgram::set(const std::string name, const float* ptr, int numFloats) const
 	{
 		assert(_progId != 0xFFFF);
 
@@ -143,7 +158,7 @@ namespace js3d {
 		}
 		return false;
 	}
-	bool ShaderProgram::set(const std::string name, const glm::vec2& p0)
+	bool ShaderProgram::set(const std::string name, const glm::vec2& p0) const
 	{
 		assert(_progId != 0xFFFF);
 
@@ -154,7 +169,7 @@ namespace js3d {
 		}
 		return false;
 	}
-	bool ShaderProgram::set(const std::string name, const glm::vec3& p0)
+	bool ShaderProgram::set(const std::string name, const glm::vec3& p0) const
 	{
 		assert(_progId != 0xFFFF);
 
@@ -165,7 +180,7 @@ namespace js3d {
 		}
 		return false;
 	}
-	bool ShaderProgram::set(const std::string name, const glm::vec4& p0)
+	bool ShaderProgram::set(const std::string name, const glm::vec4& p0) const
 	{
 		assert(_progId != 0xFFFF);
 
@@ -176,7 +191,7 @@ namespace js3d {
 		}
 		return false;
 	}
-	bool ShaderProgram::set(const std::string name, const glm::vec4* ptr, int numVec4)
+	bool ShaderProgram::set(const std::string name, const glm::vec4* ptr, int numVec4) const
 	{
 		assert(_progId != 0xFFFF);
 
@@ -187,7 +202,7 @@ namespace js3d {
 		}
 		return false;
 	}
-	bool ShaderProgram::set(const std::string name, const glm::mat4& p0)
+	bool ShaderProgram::set(const std::string name, const glm::mat4& p0) const
 	{
 		assert(_progId != 0xFFFF);
 
@@ -198,7 +213,7 @@ namespace js3d {
 		}
 		return false;
 	}
-	bool ShaderProgram::set(const std::string name, const glm::mat3& p0)
+	bool ShaderProgram::set(const std::string name, const glm::mat3& p0) const
 	{
 		assert(_progId != 0xFFFF);
 
@@ -209,7 +224,7 @@ namespace js3d {
 		}
 		return false;
 	}
-	bool ShaderProgram::set(const std::string name, const glm::mat4* p, int numMat)
+	bool ShaderProgram::set(const std::string name, const glm::mat4* p, int numMat) const
 	{
 		assert(_progId != 0xFFFF);
 
@@ -220,7 +235,7 @@ namespace js3d {
 		}
 		return false;
 	}
-	bool ShaderProgram::set(const std::string name, const glm::mat3* p, int numMat)
+	bool ShaderProgram::set(const std::string name, const glm::mat3* p, int numMat) const
 	{
 		assert(_progId != 0xFFFF);
 
@@ -231,7 +246,7 @@ namespace js3d {
 		}
 		return false;
 	}
-	void ShaderProgram::set_sampler_unit(int sampler, int unit)
+	void ShaderProgram::set_sampler_unit(int sampler, int unit) const
 	{
 		assert(sampler < 3);
 		if (_sampler_lut[sampler] != 0xFFFF)
@@ -239,7 +254,7 @@ namespace js3d {
 			glUniform1i(_sampler_lut[sampler], unit);
 		}
 	}
-	void ShaderProgram::use()
+	void ShaderProgram::use() const
 	{
 		assert(_progId != 0xFFFF);
 		glUseProgram(_progId);
@@ -252,7 +267,7 @@ namespace js3d {
 			_progId = 0xFFFF;
 		}
 	}
-	bool ShaderProgram::compile_single_stage(GLuint shaderId, eShaderType type)
+	bool ShaderProgram::compile_single_stage(GLuint shaderId, shaderType_t type)
 	{
 		GLint result = GL_FALSE;
 
@@ -266,7 +281,7 @@ namespace js3d {
 			if (infologLen > 0) {
 				std::vector<char> logBuf(infologLen);
 				glGetShaderInfoLog(shaderId, infologLen, nullptr, logBuf.data());
-				std::string sType = type == eShaderType::VERTEX ? "Vertex" : "Fragment";
+				std::string sType = type == VERTEX_SHADER ? "Vertex" : "Fragment";
 				error("%s shader compilation failed: %s", sType.c_str(), logBuf.data());
 			}
 
@@ -277,7 +292,7 @@ namespace js3d {
 
 		return true;
 	}
-	GLint ShaderProgram::get_uniform_location(const std::string& name)
+	GLint ShaderProgram::get_uniform_location(const std::string& name) const
 	{
 		assert(_progId != 0xFFFF);
 		if (g_displayManager.glVersion() >= 430)
@@ -289,41 +304,41 @@ namespace js3d {
 			return glGetUniformLocation(_progId, name.c_str());
 		}
 	}
-	ShaderProgram& ShaderManager::get_program(int index)
+	ShaderProgram const& ShaderManager::get_program(int index) const
 	{
-		assert(index < _programs.size());
+		assert(index < NUM_INTERNAL_SHADERS);
 		return _programs[index];
 	}
 
 	void ShaderManager::init()
 	{
+		_programs.resize(NUM_INTERNAL_SHADERS);
+
+		for(auto &e: internalShaders)
 		{
-			// simple pass-through
 			ShaderProgram p;
 			_std vector<const char*> vs;
 			_std vector<const char*> fs;
 
-			_std string vtx1, vtx2, frag;
-			g_fileSystem.read_text_file_base("shaders/drawvert_layout.inc.glsl", vtx1);
-			g_fileSystem.read_text_file_base("shaders/basic_vtx.glsl", vtx2);
-			g_fileSystem.read_text_file_base("shaders/basic_frag.glsl", frag);
+			std::string _vs, _fs;
+			g_fileSystem.read_text_file_base("shaders/" + std::string(e.name) + ".vs.glsl", _vs);
+			g_fileSystem.read_text_file_base("shaders/" + std::string(e.name) + ".fs.glsl", _fs);
 
-			vs.push_back("#version 330 core\n");
-			vs.push_back(vtx1.c_str());
-			vs.push_back(vtx2.c_str());
-			fs.push_back(frag.c_str());
+			vs.push_back(_vs.c_str());
+			fs.push_back(_fs.c_str());
 
 			if (p.create_program_from_shader_source(vs.size(), vs.data(), fs.size(), fs.data()))
 			{
-				_programs.push_back(std::move(p));
-				int id = int(_programs.size() - 1);
-				info("%d: simple pass-through program added", id);
+				_programs[e.index] = std::move(p);
+				info("%d: %s program added", e.index, e.name);
 			}
 		}
 	}
 	void ShaderManager::use_program(int index)
 	{
-		assert(index < _programs.size());
+		assert(index < NUM_INTERNAL_SHADERS);
 		_programs[index].use();
 	}
+
+	ShaderManager g_shaderManager;
 }

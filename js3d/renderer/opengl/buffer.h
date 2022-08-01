@@ -20,7 +20,7 @@ namespace js3d {
 		VertexBuffer& operator=(VertexBuffer&&);
 		~VertexBuffer() noexcept;
 		void init(eBufferUsage usage, uint32_t size, const void* data);
-		void bind();
+		void bind() const;
 		uint32_t size() const { return _size; }
 		void update_data(uint32_t offset, uint32_t size, const void* bytes, bool forceBind = false);
 	private:
@@ -40,7 +40,7 @@ namespace js3d {
 		IndexBuffer& operator=(IndexBuffer&&);
 		~IndexBuffer() noexcept;
 		void init(eBufferUsage usage, uint32_t size, const void* data);
-		void bind();
+		void bind() const;
 		uint32_t size() const { return _size; }
 		void update_data(uint32_t offset, uint32_t size, const void* bytes, bool forceBind = false);
 	private:
@@ -60,8 +60,8 @@ namespace js3d {
 		UniformBuffer& operator=(UniformBuffer&&);
 		~UniformBuffer() noexcept;
 		void init(eBufferUsage usage, uint32_t size, const void* data);
-		void bind(int index);
-		void bind();
+		void bind(int index) const;
+		void bind() const;
 		uint32_t size() const { return _size; }
 		void bind_range(int index, uint32_t offset, uint32_t size);
 		void update_data(uint32_t offset, uint32_t size, const void* bytes, bool forceBind = false);

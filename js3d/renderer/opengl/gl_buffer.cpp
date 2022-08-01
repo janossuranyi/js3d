@@ -52,7 +52,7 @@ namespace js3d {
 		if(_bufferId != 0xFFFF)
 			glDeleteBuffers(1, &_bufferId);
 	}
-	void VertexBuffer::bind()
+	void VertexBuffer::bind() const
 	{
 		assert(_bufferId != 0xFFFF);
 		glBindBuffer(GL_ARRAY_BUFFER, bufferId());
@@ -101,7 +101,7 @@ namespace js3d {
 		if(_bufferId != 0xFFFF)
 			glDeleteBuffers(1, &_bufferId);
 	}
-	void IndexBuffer::bind()
+	void IndexBuffer::bind() const
 	{
 		assert(_bufferId != 0xFFFF);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bufferId());
@@ -151,12 +151,12 @@ namespace js3d {
 		glBindBuffer(GL_UNIFORM_BUFFER, 0);
 		_size = size;
 	}
-	void UniformBuffer::bind(int index)
+	void UniformBuffer::bind(int index) const
 	{
 		assert(_bufferId != 0xFFFF);
 		glBindBufferBase(GL_UNIFORM_BUFFER, GLuint(index), bufferId());
 	}
-	void UniformBuffer::bind()
+	void UniformBuffer::bind() const
 	{
 		assert(_bufferId != 0xffff);
 		glBindBuffer(GL_UNIFORM_BUFFER, bufferId());

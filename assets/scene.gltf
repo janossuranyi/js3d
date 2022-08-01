@@ -15,8 +15,8 @@
                 {
                     "color" : [
                         1,
-                        0.25141993165016174,
-                        0.0176391638815403
+                        1,
+                        1
                     ],
                     "intensity" : 1,
                     "type" : "directional",
@@ -53,15 +53,15 @@
             ],
             "name" : "Camera",
             "rotation" : [
-                0.483536034822464,
-                0.33687159419059753,
-                -0.20870360732078552,
-                0.7804827094078064
+                -0.13446155190467834,
+                0.8097215890884399,
+                -0.5335006713867188,
+                -0.2040785253047943
             ],
             "translation" : [
-                7.358891487121582,
-                4.958309173583984,
-                6.925790786743164
+                -4.6437835693359375,
+                4.39876651763916,
+                -8.7889986038208
             ]
         },
         {
@@ -117,6 +117,27 @@
             "type" : "perspective"
         }
     ],
+    "animations" : [
+        {
+            "channels" : [
+                {
+                    "sampler" : 0,
+                    "target" : {
+                        "node" : 4,
+                        "path" : "rotation"
+                    }
+                }
+            ],
+            "name" : "CubeAction",
+            "samplers" : [
+                {
+                    "input" : 6,
+                    "interpolation" : "LINEAR",
+                    "output" : 7
+                }
+            ]
+        }
+    ],
     "materials" : [
         {
             "doubleSided" : true,
@@ -143,9 +164,10 @@
                         "POSITION" : 0,
                         "NORMAL" : 1,
                         "TANGENT" : 2,
-                        "TEXCOORD_0" : 3
+                        "TEXCOORD_0" : 3,
+                        "TEXCOORD_1" : 4
                     },
-                    "indices" : 4,
+                    "indices" : 5,
                     "material" : 0
                 }
             ]
@@ -219,9 +241,33 @@
         },
         {
             "bufferView" : 4,
+            "componentType" : 5126,
+            "count" : 24,
+            "type" : "VEC2"
+        },
+        {
+            "bufferView" : 5,
             "componentType" : 5123,
             "count" : 36,
             "type" : "SCALAR"
+        },
+        {
+            "bufferView" : 6,
+            "componentType" : 5126,
+            "count" : 100,
+            "max" : [
+                4.166666666666667
+            ],
+            "min" : [
+                0.041666666666666664
+            ],
+            "type" : "SCALAR"
+        },
+        {
+            "bufferView" : 7,
+            "componentType" : 5126,
+            "count" : 100,
+            "type" : "VEC4"
         }
     ],
     "bufferViews" : [
@@ -247,8 +293,23 @@
         },
         {
             "buffer" : 0,
-            "byteLength" : 72,
+            "byteLength" : 192,
             "byteOffset" : 1152
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 72,
+            "byteOffset" : 1344
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 400,
+            "byteOffset" : 1416
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 1600,
+            "byteOffset" : 1816
         }
     ],
     "samplers" : [
@@ -259,7 +320,7 @@
     ],
     "buffers" : [
         {
-            "byteLength" : 1224,
+            "byteLength" : 3416,
             "uri" : "scene.bin"
         }
     ]

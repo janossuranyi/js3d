@@ -4,9 +4,35 @@
 #include <SDL.h>
 #include <GL/glew.h>
 #include <functional>
+#include <mutex>
+#include <atomic>
+#include <thread>
+
 #include "draw_surf.h"
 #include "render_common.h"
+#include "render_mesh.h"
+
 namespace js3d {
+
+	struct frameData_t
+	{
+		uint8_t* frameMemory;
+		std::atomic_long frameMemoryAllocated{ 0 };
+		emptyCommand_t* cmdHead, *cmdTail;
+	};
+
+	typedef struct {
+		GLuint index;
+		GLint size;
+		GLenum type;
+		GLboolean normalized;
+		GLuint relOffset;
+	} vertexAttribDef_t;
+
+	typedef struct {
+		GLuint stride;
+		std::vector<vertexAttribDef_t> attribs;
+	} vertexLayoutDef_t;
 
 	class DisplayManager
 	{
@@ -26,7 +52,10 @@ namespace js3d {
 		void set_main_callback(std::function<void()> callback) { _mainFunc = callback; }
 		void poll_input();
 		void post_quit_message();
-		void run();
+		void* create_command(renderCommand_t rc, unsigned int bytes);
+		void* alloc_frame_mem(unsigned int bytes);
+
+		void run_one_frame();
 
 		void set_viewport(int x, int y, int w, int h);
 		void set_scissor(int x, int y, int w, int h);
@@ -35,26 +64,60 @@ namespace js3d {
 
 		inline int height() const { return _win_h; }
 		inline int width() const { return _win_w; }
+		inline bool is_running() const { return _running; }
+
+		// internal TODO: make it private
+		void create_mesh(createMeshCommand_t* cmd);
 
 	private:
+		struct tmu_t {
+			tmu_t() : texId(-1) {}
+			int texId;
+		};
 
+		
 		int glVersion() const { return _glVersion; }
+
+		emptyCommand_t* swap_command_buffers();
 
 		bool _initialized;
 		SDL_Window* _sdl_window;
 		SDL_GLContext _gl_context;
 		int _win_w, _win_h;
-		uint64_t _glState;
+		uint64_t _glStateBits;
+		GLfloat _polyOfsScale, _polyOfsBias;
+
 		int _glVersion;
 		std::function<void(const SDL_Event*)> _inputtHandler;
 		std::function<void()> _mainFunc;
 		bool _running;
 
-		VertexBuffer* _activeVertexBuffer;
-		IndexBuffer* _activeIndexBuffer;
-		eVertexLayout _activeVertexLayout;
+		GLuint _activeVertexBuffer;
+		GLuint _activeIndexBuffer;
+		GLuint _activeTmu;
+		GLuint _activeProgram;
+
+		vertexLayout_t _activeVertexLayout;
+
+		vertexLayoutDef_t _vertexLayouts[VERTEX_LAYOUT_LAST_ENUM];
 
 		GLuint _vao;
+
+		tmu_t _tmus[16];
+
+		std::mutex _mesh_submit_list_guard;
+
+		std::vector<RenderMesh> _render_meshes;
+		
+		unsigned int _frameCount{ 0 };
+		unsigned int _smpFrame{ 0 };
+		frameData_t _smpFrameData[NUM_FRAME_DATA];
+		frameData_t* _frameData;
+
+		bool _frame_guard{ false };
+		std::mutex _frame_lock;
+		std::condition_variable _cv_frame_guard;
+
 	};
 
 	extern DisplayManager g_displayManager;

@@ -4,7 +4,12 @@
 #include <vector>
 #include <SDL.h>
 #include <glm/glm.hpp>
+#include <tiny_gltf.h>
+
 #include "js3d.h"
+#include "material.h"
+#include "texture_manager.h"
+#include "render_common.h"
 
 using namespace js3d;
 using namespace glm;
@@ -22,49 +27,87 @@ namespace js3d {
 }
 
 
+#define _tinygltf tinygltf::
+
 int main(int argc, char** argv)
 {
+
+	std::string err, warn;
+
+	_tinygltf Model model;
+	_tinygltf TinyGLTF loader;
+
+	err = "none";
+	warn = "none";
+
+	loader.LoadASCIIFromFile(&model, &err, &warn, "d:/src/js3d/assets/scene.gltf", 0);
+
+	info("Scene warning: %s, scene error: %s", warn.c_str(), err.c_str());
+
+	info("==================================================");
+	info("Scene info");
+	info("==================================================");
+	info("asset.generator: %s", model.asset.generator.c_str());
+	info("asset.version:   %s", model.asset.version.c_str());
+	info("extension.used:  %d", model.extensionsUsed.size());
+	for (auto e : model.extensionsUsed)
+	{
+		info("extension: %s", e.c_str());
+	}
+
+	info("scenes:    %d", model.scenes.size());
+	info("nodes:     %d", model.nodes.size());
+	info("ligths:    %d", model.lights.size());
+	info("cameras:   %d", model.cameras.size());
+	info("meshes:    %d", model.meshes.size());
+	info("materials: %d", model.materials.size());
+	info("textures:  %d", model.textures.size());
+	info("binary data size: %d", model.buffers[0].data.size());
+	info("==================================================");
+
+
 	g_fileSystem.set_working_dir("d:/src/js3d/assets");
 
-	rectangle[0].setPosition(vec4(-K1, K1, K0, K1));
-	//rectangle[0].setQTangent(vec4(K1, K0, K0, K1));
-	rectangle[0].setTextCoord(vec2(0, 1) / 64.0f);
-	rectangle[0].setColor(vec4(1.0f, 0.0f, 0.0f, 1.0f));
+	Mesh rect;
 
-	rectangle[1].setPosition(vec4(K1, K1, K0, K1));
-	//rectangle[1].setQTangent(vec4(K0, K1, K0, K1));
-	rectangle[1].setTextCoord(vec2(1, 1) / 64.0f);
-	rectangle[1].setColor(vec4(0.0f, 1.0f, 0.0f, 1.0f));
+	rect.add_position(vec3(-K1, K1, K0));
+	rect.add_position(vec3(K1, K1, K0));
+	rect.add_position(vec3(K1, -K1, K0));
+	rect.add_position(vec3(-K1, -K1, K0));
 
-	rectangle[2].setPosition(vec4(K1, -K1, K0, K1));
-	//rectangle[2].setQTangent(vec4(K0, K0, K1, K1));
-	rectangle[2].setTextCoord(vec2(1, 0) / 64.0f);
-	rectangle[2].setColor(vec4(0.0f, 0.0f, 1.0f, 1.0f));
+	rect.add_uv(vec2(0, 1) * 2.0f);
+	rect.add_uv(vec2(1, 1) * 2.0f);
+	rect.add_uv(vec2(1, 0) * 2.0f);
+	rect.add_uv(vec2(0, 0) * 2.0f);
 
-	rectangle[3].setPosition(vec4(-K1, -K1, K0, K1));
-	//rectangle[3].setQTangent(vec4(K1, K1, K1, K1));
-	rectangle[3].setTextCoord(vec2(0, 0) / 64.0f);
-	rectangle[3].setColor(vec4(1.0f, 1.0f, 0.0f, 1.0f));
+	rect.add_color(vec4(1.0f, 0.0f, 0.0f, 1.0f));
+	rect.add_color(vec4(0.0f, 1.0f, 0.0f, 1.0f));
+	rect.add_color(vec4(0.0f, 0.0f, 1.0f, 1.0f));
+	rect.add_color(vec4(1.0f, 1.0f, 0.0f, 1.0f));
 
-	rectangle_idx[0] = 0;
-	rectangle_idx[1] = 3;
-	rectangle_idx[2] = 2;
+	rect.add_normal(vec3(0.0f, 0.0f, 1.0f));
+	rect.add_normal(vec3(0.0f, 0.0f, 1.0f));
+	rect.add_normal(vec3(0.0f, 0.0f, 1.0f));
+	rect.add_normal(vec3(0.0f, 0.0f, 1.0f));
+
+	rect.add_tangent(vec4(0.0f, 0.0f, 1.0f, 0.0));
+	rect.add_tangent(vec4(0.0f, 0.0f, 1.0f, 0.0));
+	rect.add_tangent(vec4(0.0f, 0.0f, 1.0f, 0.0));
+	rect.add_tangent(vec4(0.0f, 0.0f, 1.0f, 0.0));
+
+	rect.add_index(0);
+	rect.add_index(3);
+	rect.add_index(2);
 	
-	rectangle_idx[3] = 0;
-	rectangle_idx[4] = 2;
-	rectangle_idx[5] = 1;
-	
+	rect.add_index(0);
+	rect.add_index(2);
+	rect.add_index(1);
+	rect.set_bounds(vec3(-1.0f, -1.0f, 0.0f), vec3(1.0f, 1.0f, 0.0f));
+
 	info("js3d v2.0");
 
-	triSurf_t tris{};
-	tris.indices = rectangle_idx;
-	tris.vertices = rectangle;
-	tris.numIndices = 6;
-	tris.numVerts = 4;
-
 	drawSurface_t surf{};
-	surf.elementType = eDrawElementType::TRIANGLES;
-	surf.vertexData = &tris;
+	surf.meshId = 0;
 
 
 	if (!g_displayManager.create_surface(600, 600, 0, false))
@@ -74,6 +117,7 @@ int main(int argc, char** argv)
 	}
 
 	g_vertexCache.init();
+	g_shaderManager.init();
 
 	g_displayManager.set_input_handler([](const SDL_Event* e) {
 		if (e->type == SDL_KEYDOWN || e->type == SDL_KEYUP)
@@ -99,37 +143,58 @@ int main(int argc, char** argv)
 		}
 		});
 
-	g_displayManager.set_main_callback([&]() {
-		g_displayManager.draw_surface(surf);
-	});
 
-	g_sm.init();
-	g_sm.use_program(ShaderManager::SHADER_PASSTHROUGH);
+	Texture tex1, tex2, tex3;
+	Material mat;
+	surf.material = &mat;
 
-	Texture tex1,tex2,tex3;
 
-	int w, h, n;
+	int d, n, mr;
+
+	int w, h, nr;
 	unsigned char* image;
 
 	g_fileSystem.load_image_base("textures/base-white-tile_albedo.png", w, h, n, &image);
 	tex1.create_2d_default(w, h, n, image);
-	surf.albedo = &tex1;
+	d = g_textureManager.add(tex1);
 	g_fileSystem.free_image(image);
 
 	g_fileSystem.load_image_base("textures/base-white-tile_metallic-base-white-tile_roughness.png", w, h, n, &image);
 	tex2.create_2d_default(w, h, n, image);
-	surf.metallic_roughness = &tex2;
+	mr = g_textureManager.add(tex2);
 	g_fileSystem.free_image(image);
 
 	g_fileSystem.load_image_base("textures/base-white-tile_normal-ogl.png", w, h, n, &image);
 	tex3.create_2d_default(w, h, n, image);
-	surf.normal = &tex3;
+	nr = g_textureManager.add(tex3);
 	g_fileSystem.free_image(image);
 
-	surf.shader = &g_sm.get_program(ShaderManager::SHADER_PASSTHROUGH);
-	
-	g_displayManager.run();
+	mat.set_shader(ShaderManager::SHADER_DEFAULT_PBR);
+	mat.set_textures(d, nr, mr);
 
+	createMeshCommand_t* cmd = (createMeshCommand_t *) g_displayManager.create_command(RC_CREATE_MESH, sizeof(createMeshCommand_t));
+	cmd->r_mesh = (RenderMesh*)g_displayManager.alloc_frame_mem(sizeof(RenderMesh));
+
+	RenderMesh rectMesh(0, rect, &g_displayManager);
+	*cmd->r_mesh = rectMesh;
+
+	g_displayManager.run_one_frame();
+
+	while (g_displayManager.is_running())
+	{
+		drawSurfaceCommand_t* cmd = (drawSurfaceCommand_t*)g_displayManager.create_command(js3d::RC_DRAW_SURF, sizeof(drawSurfaceCommand_t));
+		drawSurface_t* dsurf = (drawSurface_t*)g_displayManager.alloc_frame_mem(sizeof(drawSurface_t));
+		Material* mat = (Material*)g_displayManager.alloc_frame_mem(sizeof(Material));
+		*mat = *surf.material;
+
+		dsurf->material = mat;
+		dsurf->elementType = surf.elementType;
+		dsurf->stateFlags = surf.stateFlags;
+
+		cmd->drawSurf = dsurf;
+
+		g_displayManager.run_one_frame();
+	}
 
 	return 0;
 }

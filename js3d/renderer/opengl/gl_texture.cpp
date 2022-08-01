@@ -6,7 +6,7 @@
 
 namespace js3d {
 
-	Texture::Texture(Texture&& moved)
+	Texture::Texture(Texture&& moved) noexcept
 	{
 		_textureId = moved.textureId();
 		moved._textureId = 0xffff;
@@ -20,7 +20,7 @@ namespace js3d {
 		}
 	}
 
-	Texture& Texture::operator=(Texture&& moved)
+	Texture& Texture::operator=(Texture&& moved) noexcept
 	{
 		_textureId = moved.textureId();
 		moved._textureId = 0xffff;
@@ -56,14 +56,23 @@ namespace js3d {
 		}
 		
 		_textureId = texid;
+		_target = GL_TEXTURE_2D;
 
 		return er == GL_NO_ERROR;
 	}
 
-	void Texture::bind(int unit)
+	void Texture::bind(int unit) const
 	{
 		glActiveTexture(GL_TEXTURE0 + unit);
 		glBindTexture(GL_TEXTURE_2D, _textureId);
 	}
 
+	bool Texture::equal(const Texture& other)
+	{
+		return _textureId == other._textureId;
+	}
+	void Texture::unbind()
+	{
+		glBindTexture(_target, 0);
+	}
 }
