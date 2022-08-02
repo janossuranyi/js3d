@@ -10,6 +10,7 @@
 #include "material.h"
 #include "texture_manager.h"
 #include "render_common.h"
+#include "thread.h"
 
 using namespace js3d;
 using namespace glm;
@@ -28,6 +29,30 @@ namespace js3d {
 
 
 #define _tinygltf tinygltf::
+
+drawSurface_t surf{};
+
+class MyWorker : public js3d::Thread
+{
+public:
+	MyWorker(const char* name) : Thread(name) {}
+	void run() override;
+};
+
+
+void MyWorker::run()
+{
+	drawSurfaceCommand_t* cmd = (drawSurfaceCommand_t*)g_displayManager.create_command(js3d::RC_DRAW_SURF, sizeof(drawSurfaceCommand_t));
+	drawSurface_t* dsurf = (drawSurface_t*)g_displayManager.alloc_frame_mem(sizeof(drawSurface_t));
+	Material* mat = (Material*)g_displayManager.alloc_frame_mem(sizeof(Material));
+	*mat = *surf.material;
+
+	dsurf->material = mat;
+	dsurf->elementType = surf.elementType;
+	dsurf->stateFlags = surf.stateFlags;
+
+	cmd->drawSurf = dsurf;
+}
 
 int main(int argc, char** argv)
 {
@@ -55,6 +80,7 @@ int main(int argc, char** argv)
 		info("extension: %s", e.c_str());
 	}
 
+	info("Number of logical CPU cores: %d", SDL_GetCPUCount());
 	info("scenes:    %d", model.scenes.size());
 	info("nodes:     %d", model.nodes.size());
 	info("ligths:    %d", model.lights.size());
@@ -102,12 +128,11 @@ int main(int argc, char** argv)
 	rect.add_index(0);
 	rect.add_index(2);
 	rect.add_index(1);
+
 	rect.set_bounds(vec3(-1.0f, -1.0f, 0.0f), vec3(1.0f, 1.0f, 0.0f));
 
 	info("js3d v2.0");
 
-	drawSurface_t surf{};
-	surf.meshId = 0;
 
 
 	if (!g_displayManager.create_surface(600, 600, 0, false))
@@ -146,6 +171,8 @@ int main(int argc, char** argv)
 
 	Texture tex1, tex2, tex3;
 	Material mat;
+
+	surf.meshId = 0;
 	surf.material = &mat;
 
 
@@ -180,19 +207,17 @@ int main(int argc, char** argv)
 
 	g_displayManager.run_one_frame();
 
+	MyWorker tr("test-worker");
+
 	while (g_displayManager.is_running())
 	{
-		drawSurfaceCommand_t* cmd = (drawSurfaceCommand_t*)g_displayManager.create_command(js3d::RC_DRAW_SURF, sizeof(drawSurfaceCommand_t));
-		drawSurface_t* dsurf = (drawSurface_t*)g_displayManager.alloc_frame_mem(sizeof(drawSurface_t));
-		Material* mat = (Material*)g_displayManager.alloc_frame_mem(sizeof(Material));
-		*mat = *surf.material;
+		tr.start_worker();
+		/*
+		....
+		*/
 
-		dsurf->material = mat;
-		dsurf->elementType = surf.elementType;
-		dsurf->stateFlags = surf.stateFlags;
-
-		cmd->drawSurf = dsurf;
-
+		info("frame...");
+		tr.wait_for_done();
 		g_displayManager.run_one_frame();
 	}
 
