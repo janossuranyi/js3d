@@ -1,7 +1,8 @@
 #ifndef JS3D_THREAD_H
 #define JS3D_THREAD_H
 
-#include <SDL.h>
+#include <thread>
+#include <mutex>
 
 namespace js3d {
 
@@ -17,18 +18,20 @@ namespace js3d {
 		const char* name() const { return _name; }
 		int start_worker();
 		void wait_for_done();
-		friend int Thread_threadProc(void*);
+		void threadProc();
 
 		virtual void run();
 
 	protected:
 		void set_result(int r) { _ret = r; }
 	private:
-		SDL_sem* _workerWorkDone;
-		SDL_sem* _workerFireWork;
-		SDL_Thread* _thread;
-		SDL_atomic_t _terminate;
-
+		bool _terminate;
+		bool _workerWorkDone;
+		bool _workerWorkTodo;
+		std::condition_variable _workerWorkDone_cv;
+		std::condition_variable _workerWorkTodo_cv;
+		std::mutex _mtx;
+		std::thread _thread;
 		const char* _name;
 		int _ret;
 	};

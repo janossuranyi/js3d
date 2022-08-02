@@ -1,50 +1,52 @@
 
-#include <SDL.h>
+#include <thread>
+#include <mutex>
 #include "thread.h"
+#include "logger.h"
 
 namespace js3d {
 	
-	int Thread_threadProc(void* context);
-
 	Thread::Thread(const char* name)
 	{
 		_name = name;
 		_ret = 0;
-		_workerWorkDone = SDL_CreateSemaphore(0);
-		_workerFireWork = SDL_CreateSemaphore(0);
-		SDL_AtomicSet(&_terminate, 0);
-		_thread = SDL_CreateThread(Thread_threadProc, name, this);
+		_workerWorkDone = false;
+		_workerWorkTodo = false;
+
+		_terminate = 0;
+
+		_thread = std::thread(&Thread::threadProc, this);
 	}
 
 	Thread::~Thread() noexcept
 	{
-		int res;
+		std::unique_lock<std::mutex> lock(_mtx);
 
-		SDL_AtomicSet(&_terminate, 1);
-		SDL_SemPost(_workerFireWork);
-		SDL_WaitThread(_thread, &res);
+		_terminate = true;
+		_workerWorkTodo = true;
+		_workerWorkTodo_cv.notify_one();
+		lock.unlock();
 
-		SDL_DestroySemaphore(_workerFireWork);
-		SDL_DestroySemaphore(_workerWorkDone);
-
-		SDL_Log("Thread %s exited", _name);
+		_thread.join();
 	}
 
 	int Thread::start_worker()
 	{
 
-		SDL_SemWait(_workerWorkDone);
-
 		int latch = _ret;
-
-		SDL_SemPost(_workerFireWork);
+		
+		std::unique_lock<std::mutex> lock(_mtx);
+		_workerWorkDone_cv.wait(lock, [&] {return _workerWorkDone; });
+		_workerWorkTodo = true;
+		_workerWorkTodo_cv.notify_one();
 
 		return _ret;
 	}
 
 	void Thread::wait_for_done()
 	{
-		SDL_SemWait(_workerWorkDone);
+		std::unique_lock<std::mutex> lock(_mtx);
+		_workerWorkDone_cv.wait(lock, [&] {return _workerWorkDone; });
 	}
 
 	void Thread::run()
@@ -52,22 +54,28 @@ namespace js3d {
 		_ret = 1;
 	}
 
-	static int Thread_threadProc(void* context)
+	void Thread::threadProc()
 	{
-		Thread* _this = reinterpret_cast<Thread*>(context);
-
-		while (!SDL_AtomicGet(&_this->_terminate))
+		while (!_terminate)
 		{
-			SDL_SemPost(_this->_workerWorkDone);
-			SDL_SemWait(_this->_workerFireWork);
+			std::unique_lock<std::mutex> lock(_mtx);
+			_workerWorkDone = true;
+			_workerWorkDone_cv.notify_one();
+			_workerWorkTodo_cv.wait(lock, [&] {return _workerWorkTodo; });
 
-			if (SDL_AtomicGet(&_this->_terminate))
+			_workerWorkTodo = false;
+			_workerWorkDone = false;
+
+			if (_terminate)
+			{
 				break;
+			}
 
-			_this->run();
+			lock.unlock();
+
+			this->run();
 		}
-
-		return 0;
+		info("worker done!");
 	}
 
 }
