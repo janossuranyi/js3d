@@ -623,8 +623,24 @@ namespace js3d {
         // set material
         // ...
 
-		
-		VertexBuffer const* vertCacheBuf = &g_vertexCache._static_cache.vertexBuffer;
+		RenderMesh& mesh = _render_meshes[surf.meshId];
+
+		uint32_t indexOffset, indexSize, vertexOffset, vertexSize;
+		bool isStatic;
+		g_vertexCache.decode_handle(mesh.indexHandle(), indexOffset, indexSize, isStatic);
+		g_vertexCache.decode_handle(mesh.vertexHandle(), vertexOffset, vertexSize, isStatic);
+
+		VertexBuffer const* vertCacheBuf;
+
+		if (isStatic)
+		{
+			vertCacheBuf = &g_vertexCache._static_cache.vertexBuffer;
+		}
+		else
+		{
+			vertCacheBuf = &g_vertexCache._frame_data[g_vertexCache._listNum].vertexBuffer;
+		}
+			
 
         if (glVersion() < 430)
         {
@@ -654,12 +670,6 @@ namespace js3d {
 			g_vertexCache._static_cache.indexBuffer.bind();
         }
 
-		RenderMesh& mesh = _render_meshes[surf.meshId];
-
-        uint32_t indexOffset, indexSize, vertexOffset, vertexSize;
-        bool isStatic;
-        g_vertexCache.decode_handle(mesh.indexHandle(), indexOffset, indexSize, isStatic);
-        g_vertexCache.decode_handle(mesh.vertexHandle(), vertexOffset, vertexSize, isStatic);
 
         GLuint elemType = GL_TRIANGLES;
         switch (surf.elementType)
