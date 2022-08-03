@@ -34,7 +34,7 @@ namespace js3d {
 		std::vector<vertexAttribDef_t> attribs;
 	} vertexLayoutDef_t;
 
-	class DisplayManager
+	class RenderSystem
 	{
 		friend class VertexBuffer;
 		friend class IndexBuffer;
@@ -42,8 +42,8 @@ namespace js3d {
 		friend class ShaderManager;
 		friend class ShaderProgram;
 	public:
-		DisplayManager();
-		~DisplayManager();
+		RenderSystem();
+		~RenderSystem();
 
 		bool create_surface(const int w, const int h, const int multisample, const bool fullscreen);
 		void shutdown();
@@ -105,8 +105,6 @@ namespace js3d {
 
 		tmu_t _tmus[16];
 
-		std::mutex _mesh_submit_list_guard;
-
 		std::vector<RenderMesh> _render_meshes;
 		
 		unsigned int _frameCount{ 0 };
@@ -114,12 +112,8 @@ namespace js3d {
 		frameData_t _smpFrameData[NUM_FRAME_DATA];
 		frameData_t* _frameData;
 
-		bool _frame_guard{ false };
-		std::mutex _frame_lock;
-		std::condition_variable _cv_frame_guard;
-
 	};
 
-	extern DisplayManager g_displayManager;
+	extern RenderSystem g_renderSystem;
 }
 #endif // !JS3D_DISPLAY_MANAGER_H

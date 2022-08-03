@@ -9,7 +9,7 @@ namespace js3d {
 	enum class eBufferUsage { STATIC, DYNAMIC };
 
 	class VertexBuffer {
-		friend class DisplayManager;
+		friend class RenderSystem;
 
 	public:
 		VertexBuffer(eBufferUsage usage, uint32_t size, const void* data);
@@ -30,7 +30,7 @@ namespace js3d {
 	};
 
 	class IndexBuffer {
-		friend class DisplayManager;
+		friend class RenderSystem;
 	public:
 		IndexBuffer(eBufferUsage usage, uint32_t size, const void* data);
 		IndexBuffer() : _bufferId(0xFFFF), _size(0) {};
@@ -50,7 +50,7 @@ namespace js3d {
 	};
 
 	class UniformBuffer {
-		friend class DisplayManager;
+		friend class RenderSystem;
 	public:
 		UniformBuffer(eBufferUsage usage, uint32_t size, const void* data);
 		UniformBuffer() : _bufferId(0xFFFF), _size(0) {};

@@ -295,7 +295,7 @@ namespace js3d {
 	GLint ShaderProgram::get_uniform_location(const std::string& name) const
 	{
 		assert(_progId != 0xFFFF);
-		if (g_displayManager.glVersion() >= 430)
+		if (g_renderSystem.glVersion() >= 430)
 		{
 			return glGetProgramResourceLocation(_progId, GL_UNIFORM, name.c_str());
 		}

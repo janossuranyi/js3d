@@ -65,7 +65,7 @@ int main(int argc, char** argv)
 
 
 
-	if (!g_displayManager.create_surface(600, 600, 0, false))
+	if (!g_renderSystem.create_surface(600, 600, 0, false))
 	{
 		error("Cannot initialize display");
 		exit(-1);
@@ -74,12 +74,12 @@ int main(int argc, char** argv)
 	g_vertexCache.init();
 	g_shaderManager.init();
 
-	g_displayManager.set_input_handler([](const SDL_Event* e) {
+	g_renderSystem.set_input_handler([](const SDL_Event* e) {
 		if (e->type == SDL_KEYDOWN || e->type == SDL_KEYUP)
 		{
 			info("%d key pressed/released", e->key.keysym.sym);
 			if (e->key.keysym.sym == SDLK_ESCAPE) {
-				g_displayManager.post_quit_message();
+				g_renderSystem.post_quit_message();
 			}
 		}
 		else if (e->type == SDL_WINDOWEVENT)
@@ -92,7 +92,7 @@ int main(int argc, char** argv)
 					e->window.windowID, e->window.data1,
 					e->window.data2);
 
-				g_displayManager.set_viewport(0, 0, e->window.data1, e->window.data2);
+				g_renderSystem.set_viewport(0, 0, e->window.data1, e->window.data2);
 				break;
 			}
 		}
@@ -127,14 +127,14 @@ int main(int argc, char** argv)
 
 	worker.init();
 
-	while (g_displayManager.is_running())
+	while (g_renderSystem.is_running())
 	{
 
-		const js3d::emptyCommand_t* cmds = g_displayManager.swap_command_buffers();
+		const js3d::emptyCommand_t* cmds = g_renderSystem.swap_command_buffers();
 		
 		worker.start_worker();
 
-		g_displayManager.draw_frame(cmds);
+		g_renderSystem.draw_frame(cmds);
 
 
 		worker.wait_for_done();

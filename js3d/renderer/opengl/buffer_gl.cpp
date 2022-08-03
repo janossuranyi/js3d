@@ -1,6 +1,6 @@
 #include <cassert>
 #include "buffer.h"
-#include "display_manager.h"
+#include "render_system.h"
 
 namespace js3d {
 
@@ -59,7 +59,7 @@ namespace js3d {
 	}
 	void VertexBuffer::update_data(uint32_t offset, uint32_t size, const void* bytes, bool forceBind)
 	{
-		if (g_displayManager.glVersion() >= 450)
+		if (g_renderSystem.glVersion() >= 450)
 		{
 			glNamedBufferSubData(bufferId(), GLintptr(offset), GLsizeiptr(size), bytes);
 		}
@@ -108,7 +108,7 @@ namespace js3d {
 	}
 	void IndexBuffer::update_data(uint32_t offset, uint32_t size, const void* bytes, bool forceBind)
 	{
-		if (g_displayManager.glVersion() >= 450)
+		if (g_renderSystem.glVersion() >= 450)
 		{
 			glNamedBufferSubData(bufferId(), GLintptr(offset), GLsizeiptr(size), bytes);
 		}
@@ -168,7 +168,7 @@ namespace js3d {
 	}
 	void UniformBuffer::update_data(uint32_t offset, uint32_t size, const void* bytes, bool forceBind)
 	{
-		if (g_displayManager.glVersion() >= 450)
+		if (g_renderSystem.glVersion() >= 450)
 		{
 			glNamedBufferSubData(bufferId(), GLintptr(offset), GLsizeiptr(size), bytes);
 		}

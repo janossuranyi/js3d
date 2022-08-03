@@ -4,15 +4,16 @@
 #include <vector>
 #include "draw_vert.h"
 #include "mesh.h"
-#include "display_manager.h"
 
 namespace js3d {
 
+	class RenderSystem;
+	
 	class RenderMesh
 	{
 	public:
 		RenderMesh();
-		RenderMesh(int index, const Mesh& mesh, DisplayManager* dm);
+		RenderMesh(int index, const Mesh& mesh, RenderSystem* dm);
 		void set_mesh(int index, const Mesh& mesh);
 		void set_id(int id);
 		int id() const;
@@ -40,7 +41,7 @@ namespace js3d {
 		drawVert_t* _vertices;
 		uint16_t* _indices;
 
-		DisplayManager* _displayManager;
+		RenderSystem* _renderSystem;
 	};
 }
 #endif // !JS3D_RENDER_MESH_H

@@ -3,23 +3,25 @@
 #include <glm/glm.hpp>
 #include "heap.h"
 #include "render_mesh.h"
+#include "render_system.h"
 
 namespace js3d {
 	RenderMesh::RenderMesh()
 	{
-		_displayManager = nullptr;
+		_renderSystem = nullptr;
 		_vertexCacheHandle = -1;
 		_indexCacheHandle = -1;
 		_vertices = nullptr;
 		_indices = nullptr;
 		_numVertices = 0;
 		_numIndices = 0;
+		_mesh = -1;
 	}
 
-	RenderMesh::RenderMesh(int index, const Mesh& mesh, DisplayManager *dm) : RenderMesh()
+	RenderMesh::RenderMesh(int index, const Mesh& mesh, RenderSystem *dm) : RenderMesh()
 	{
 		
-		_displayManager = dm;
+		_renderSystem = dm;
 		set_mesh(index, mesh);
 	}
 
@@ -37,14 +39,14 @@ namespace js3d {
 			const glm::vec4* colorArray = mesh.colors();
 			const glm::vec2* uvArray = mesh.uvs();
 
-			_vertices = static_cast<drawVert_t*>(_displayManager->alloc_frame_mem(mesh.numVertices() * sizeof(drawVert_t)));
-			_indices = static_cast<uint16_t*>(_displayManager->alloc_frame_mem(mesh.numIndices() * 2));
+			_vertices	= static_cast<drawVert_t*>	(_renderSystem->alloc_frame_mem(mesh.numVertices() * sizeof(drawVert_t)));
+			_indices	= static_cast<uint16_t*>	(_renderSystem->alloc_frame_mem(mesh.numIndices() * 2));
 
-			std::memset(_vertices, 0, mesh.numVertices() * sizeof(drawVert_t));
-			std::memset(_indices, 0, mesh.numIndices() * 2);
+			::memset(_vertices, 0, mesh.numVertices() * sizeof(drawVert_t));
+			::memset(_indices,	0, mesh.numIndices() * 2);
 
-			_numIndices = mesh.numIndices();
-			_numVertices = mesh.numVertices();
+			_numIndices		= mesh.numIndices();
+			_numVertices	= mesh.numVertices();
 
 			for (unsigned i = 0; i < mesh.numVertices(); ++i)
 			{

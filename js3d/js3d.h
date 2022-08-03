@@ -8,7 +8,7 @@
 #include "render_common.h"
 #include "vertex_cache.h"
 #include "shader_manager.h"
-#include "display_manager.h"
+#include "render_system.h"
 #include "texture.h"
 
 #define RENDER_OPENGL

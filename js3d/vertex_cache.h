@@ -3,7 +3,7 @@
 
 #include <cinttypes>
 #include <atomic>
-#include "display_manager.h"
+#include "render_system.h"
 #include "render_common.h"
 #include "buffer.h"
 #include "draw_vert.h"
@@ -44,7 +44,7 @@ namespace js3d {
 
 	class VertexCache
 	{
-		friend class DisplayManager;
+		friend class RenderSystem;
 	public:
 		VertexCache();
 		~VertexCache() noexcept;

@@ -2,7 +2,7 @@
 #include <GL/glew.h>
 #include <vector>
 #include "js3d.h"
-#include "display_manager.h"
+#include "render_system.h"
 #include "render_common.h"
 #include "GLState.h"
 
@@ -27,7 +27,7 @@ namespace js3d {
         info("Source: %d Type: %d Id: %d Severity: %d '%s'", alSource, alType, alID, alSeverity, apMessage);
     }
 
-	DisplayManager::DisplayManager()
+	RenderSystem::RenderSystem()
 	{
 		_initialized = false;
 		_sdl_window = nullptr;
@@ -69,12 +69,12 @@ namespace js3d {
 
 	}
 
-    DisplayManager::~DisplayManager()
+    RenderSystem::~RenderSystem()
 	{
         shutdown();
 	}
 
-    bool DisplayManager::create_surface(const int w, const int h, const int multisample, const bool fullscreen)
+    bool RenderSystem::create_surface(const int w, const int h, const int multisample, const bool fullscreen)
     {
         // Initialise SDL
         if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_EVENTS) < 0)
@@ -198,7 +198,7 @@ namespace js3d {
 		return true;
 	}
 
-    void DisplayManager::shutdown()
+    void RenderSystem::shutdown()
     {
         if (_initialized) {
             if (_vao != 0xFFFF) glDeleteVertexArrays(1, &_vao);
@@ -212,7 +212,7 @@ namespace js3d {
 		}
     }
 
-	void DisplayManager::set_state(uint64_t stateBits, bool forceGlState)
+	void RenderSystem::set_state(uint64_t stateBits, bool forceGlState)
 	{
 		uint64_t diff = stateBits ^ _glStateBits;
 
@@ -557,7 +557,7 @@ namespace js3d {
 		_glStateBits = stateBits;
 	}
 
-    void DisplayManager::poll_input()
+    void RenderSystem::poll_input()
     {
         SDL_Event e;
 
@@ -574,12 +574,12 @@ namespace js3d {
         }
     }
 
-    void DisplayManager::post_quit_message()
+    void RenderSystem::post_quit_message()
     {
         _running = false;
     }
 
-	void DisplayManager::draw_frame(const emptyCommand_t* cmds)
+	void RenderSystem::draw_frame(const emptyCommand_t* cmds)
 	{
 		glClear(GL_COLOR_BUFFER_BIT);
 
@@ -607,17 +607,17 @@ namespace js3d {
 		poll_input();
 	}
 
-    void DisplayManager::set_viewport(int x, int y, int w, int h)
+    void RenderSystem::set_viewport(int x, int y, int w, int h)
     {
         glViewport(x, y, w, h);
     }
 
-    void DisplayManager::set_scissor(int x, int y, int w, int h)
+    void RenderSystem::set_scissor(int x, int y, int w, int h)
     {
         glScissor(x, y, w, h);
     }
 
-    void DisplayManager::draw_surface(const drawSurface_t& surf)
+    void RenderSystem::draw_surface(const drawSurface_t& surf)
     {
         if (!_initialized) return;
         // set material
@@ -712,7 +712,7 @@ namespace js3d {
             GLint(vertexOffset / sizeof(drawVert_t)));
     }
 
-	void DisplayManager::create_mesh(createMeshCommand_t* cmd)
+	void RenderSystem::create_mesh(createMeshCommand_t* cmd)
 	{
 		RenderMesh newMesh, *rm = cmd->r_mesh;
 		
@@ -738,7 +738,7 @@ namespace js3d {
 		}
 	}
 
-	void* DisplayManager::create_command(renderCommand_t rc, unsigned int bytes)
+	void* RenderSystem::create_command(renderCommand_t rc, unsigned int bytes)
 	{
 
 		emptyCommand_t* cmd = reinterpret_cast<emptyCommand_t*>(alloc_frame_mem(bytes));
@@ -751,7 +751,7 @@ namespace js3d {
 		return cmd;
 	}
 
-	void* DisplayManager::alloc_frame_mem(unsigned int bytes)
+	void* RenderSystem::alloc_frame_mem(unsigned int bytes)
 	{
 		bytes = (bytes + FRAME_DATA_MEM_ALIGN - 1) & ~(FRAME_DATA_MEM_ALIGN - 1);
 		const unsigned offset = _frameData->frameMemoryAllocated.fetch_add(bytes, std::memory_order_relaxed);
@@ -766,7 +766,7 @@ namespace js3d {
 		return ptr;
 	}
 
-	const emptyCommand_t* DisplayManager::swap_command_buffers()
+	const emptyCommand_t* RenderSystem::swap_command_buffers()
 	{
 
 		emptyCommand_t* commandBuffer = _frameData->cmdHead;
@@ -789,5 +789,5 @@ namespace js3d {
 		::memset(bytePtr, 0, CACHE_LINE_SIZE);
 	}
 
-    DisplayManager g_displayManager;
+    RenderSystem g_renderSystem;
 }

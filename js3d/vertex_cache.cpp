@@ -67,6 +67,9 @@ namespace js3d {
 		_drawListNum = _listNum;
 		_currentFrame++;
 		_listNum = _currentFrame % NUM_FRAME_DATA;
+		_frame_data[_listNum].indexMemUsed = 0;
+		_frame_data[_listNum].vertexMemUsed = 0;
+		_frame_data[_listNum].allocations = 0;
 	}
 
 	bool VertexCache::decode_handle(vertCacheHandle_t handle, uint32_t& offset, uint32_t& size, bool& isStatic)
