@@ -11,51 +11,19 @@
 #include "texture_manager.h"
 #include "render_common.h"
 #include "thread.h"
+#include "render_worker.h"
 
 using namespace js3d;
 using namespace glm;
 
 ShaderManager g_sm;
 
-drawVert_t* rectangle = (drawVert_t*)Mem_Alloc16(4*sizeof(drawVert_t));
-elementIndex_t* rectangle_idx = (elementIndex_t*)Mem_Alloc16(6 * sizeof(elementIndex_t));
-
-const float K1 = 1.0f;
-const float K0 = 0.0f;
-
-namespace js3d {
-	FileSystem g_fileSystem;
-}
-
 
 #define _tinygltf tinygltf::
 
-drawSurface_t surf{};
-
-class MyWorker : public js3d::Thread
-{
-public:
-	MyWorker(const char* name) : Thread(name) {}
-	void run() override;
-};
-
-
-void MyWorker::run()
-{
-	drawSurfaceCommand_t* cmd = (drawSurfaceCommand_t*)g_displayManager.create_command(js3d::RC_DRAW_SURF, sizeof(drawSurfaceCommand_t));
-	drawSurface_t* dsurf = (drawSurface_t*)g_displayManager.alloc_frame_mem(sizeof(drawSurface_t));
-	Material* mat = (Material*)g_displayManager.alloc_frame_mem(sizeof(Material));
-	*mat = *surf.material;
-
-	dsurf->material = mat;
-	dsurf->elementType = surf.elementType;
-	dsurf->stateFlags = surf.stateFlags;
-
-	cmd->drawSurf = dsurf;
-}
-
 int main(int argc, char** argv)
 {
+	g_fileSystem.set_working_dir("d:/src/js3d/assets");
 
 	std::string err, warn;
 
@@ -92,44 +60,6 @@ int main(int argc, char** argv)
 	info("==================================================");
 
 
-	g_fileSystem.set_working_dir("d:/src/js3d/assets");
-
-	Mesh rect;
-
-	rect.add_position(vec3(-K1, K1, K0));
-	rect.add_position(vec3(K1, K1, K0));
-	rect.add_position(vec3(K1, -K1, K0));
-	rect.add_position(vec3(-K1, -K1, K0));
-
-	rect.add_uv(vec2(0, 1) * 2.0f);
-	rect.add_uv(vec2(1, 1) * 2.0f);
-	rect.add_uv(vec2(1, 0) * 2.0f);
-	rect.add_uv(vec2(0, 0) * 2.0f);
-
-	rect.add_color(vec4(1.0f, 0.0f, 0.0f, 1.0f));
-	rect.add_color(vec4(0.0f, 1.0f, 0.0f, 1.0f));
-	rect.add_color(vec4(0.0f, 0.0f, 1.0f, 1.0f));
-	rect.add_color(vec4(1.0f, 1.0f, 0.0f, 1.0f));
-
-	rect.add_normal(vec3(0.0f, 0.0f, 1.0f));
-	rect.add_normal(vec3(0.0f, 0.0f, 1.0f));
-	rect.add_normal(vec3(0.0f, 0.0f, 1.0f));
-	rect.add_normal(vec3(0.0f, 0.0f, 1.0f));
-
-	rect.add_tangent(vec4(0.0f, 0.0f, 1.0f, 0.0));
-	rect.add_tangent(vec4(0.0f, 0.0f, 1.0f, 0.0));
-	rect.add_tangent(vec4(0.0f, 0.0f, 1.0f, 0.0));
-	rect.add_tangent(vec4(0.0f, 0.0f, 1.0f, 0.0));
-
-	rect.add_index(0);
-	rect.add_index(3);
-	rect.add_index(2);
-	
-	rect.add_index(0);
-	rect.add_index(2);
-	rect.add_index(1);
-
-	rect.set_bounds(vec3(-1.0f, -1.0f, 0.0f), vec3(1.0f, 1.0f, 0.0f));
 
 	info("js3d v2.0");
 
@@ -168,18 +98,13 @@ int main(int argc, char** argv)
 		}
 		});
 
-
-	Texture tex1, tex2, tex3;
-	Material mat;
-
-	surf.meshId = 0;
-	surf.material = &mat;
-
+	MyWorker worker("test-worker");
 
 	int d, n, mr;
 
 	int w, h, nr;
 	unsigned char* image;
+	Texture tex1, tex2, tex3;
 
 	g_fileSystem.load_image_base("textures/base-white-tile_albedo.png", w, h, n, &image);
 	tex1.create_2d_default(w, h, n, image);
@@ -196,29 +121,24 @@ int main(int argc, char** argv)
 	nr = g_textureManager.add(tex3);
 	g_fileSystem.free_image(image);
 
-	mat.set_shader(ShaderManager::SHADER_DEFAULT_PBR);
-	mat.set_textures(d, nr, mr);
+	worker.t1 = d;
+	worker.t2 = mr;
+	worker.t3 = nr;
 
-	createMeshCommand_t* cmd = (createMeshCommand_t *) g_displayManager.create_command(RC_CREATE_MESH, sizeof(createMeshCommand_t));
-	cmd->r_mesh = (RenderMesh*)g_displayManager.alloc_frame_mem(sizeof(RenderMesh));
-
-	RenderMesh rectMesh(0, rect, &g_displayManager);
-	*cmd->r_mesh = rectMesh;
-
-	g_displayManager.run_one_frame();
-
-	MyWorker tr("test-worker");
+	worker.init();
 
 	while (g_displayManager.is_running())
 	{
-		tr.start_worker();
-		/*
-		....
-		*/
 
-		info("frame...");
-		tr.wait_for_done();
-		g_displayManager.run_one_frame();
+		const js3d::emptyCommand_t* cmds = g_displayManager.swap_command_buffers();
+		
+		worker.start_worker();
+
+		g_displayManager.draw_frame(cmds);
+
+
+		worker.wait_for_done();
+
 	}
 
 	return 0;

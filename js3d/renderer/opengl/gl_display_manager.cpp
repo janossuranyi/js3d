@@ -579,10 +579,8 @@ namespace js3d {
         _running = false;
     }
 
-	void DisplayManager::run_one_frame()
+	void DisplayManager::draw_frame(const emptyCommand_t* cmds)
 	{
-		emptyCommand_t* cmds = swap_command_buffers();
-
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		for (; cmds; cmds = (emptyCommand_t*)cmds->next)
@@ -768,7 +766,7 @@ namespace js3d {
 		return ptr;
 	}
 
-	emptyCommand_t* DisplayManager::swap_command_buffers()
+	const emptyCommand_t* DisplayManager::swap_command_buffers()
 	{
 
 		emptyCommand_t* commandBuffer = _frameData->cmdHead;

@@ -74,7 +74,9 @@ file(GLOB SHADERS_INC assets/shaders/*.inc)
 add_executable(demo	
   demo/demo.cpp
   demo/demo.h
-  ${SHADERS}  
+  demo/render_worker.h
+  demo/render_worker.cpp
+  ${SHADERS}
 )
 
 target_link_libraries(demo

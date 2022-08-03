@@ -8,12 +8,12 @@ namespace js3d {
 
 	//typedef int(threadProc_t*)(void*);
 
-	class Thread
+	class Worker
 	{
 
 	public:
-		Thread(const char* name);
-		~Thread() noexcept;
+		Worker(const char* name);
+		~Worker() noexcept;
 		int result() const { return _ret; }
 		const char* name() const { return _name; }
 		int start_worker();
@@ -28,8 +28,8 @@ namespace js3d {
 		bool _terminate;
 		bool _workerWorkDone;
 		bool _workerWorkTodo;
-		std::condition_variable _workerWorkDone_cv;
-		std::condition_variable _workerWorkTodo_cv;
+		std::condition_variable _workerWorkDoneCond;
+		std::condition_variable _workerWorkTodoCond;
 		std::mutex _mtx;
 		std::thread _thread;
 		const char* _name;

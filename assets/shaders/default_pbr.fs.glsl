@@ -39,6 +39,6 @@ void main() {
 	vec4 metal = texture( samp1, vo_st );
 	vec4 normal = texture( samp2, vo_st );
 //	fragColor = rgb_to_srgb( color * vo_color );
-	fragColor = albedo * vo_color;
+	fragColor = mix(albedo, mix(metal, normal, 0.2), 0.2);
 	
 }

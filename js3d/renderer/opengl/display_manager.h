@@ -55,7 +55,7 @@ namespace js3d {
 		void* create_command(renderCommand_t rc, unsigned int bytes);
 		void* alloc_frame_mem(unsigned int bytes);
 
-		void run_one_frame();
+		void draw_frame(const emptyCommand_t* cmds);
 
 		void set_viewport(int x, int y, int w, int h);
 		void set_scissor(int x, int y, int w, int h);
@@ -68,6 +68,7 @@ namespace js3d {
 
 		// internal TODO: make it private
 		void create_mesh(createMeshCommand_t* cmd);
+		const emptyCommand_t* swap_command_buffers();
 
 	private:
 		struct tmu_t {
@@ -78,7 +79,6 @@ namespace js3d {
 		
 		int glVersion() const { return _glVersion; }
 
-		emptyCommand_t* swap_command_buffers();
 
 		bool _initialized;
 		SDL_Window* _sdl_window;

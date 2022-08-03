@@ -6,7 +6,7 @@
 
 namespace js3d {
 	
-	Thread::Thread(const char* name)
+	Worker::Worker(const char* name)
 	{
 		_name = name;
 		_ret = 0;
@@ -15,53 +15,60 @@ namespace js3d {
 
 		_terminate = 0;
 
-		_thread = std::thread(&Thread::threadProc, this);
+		_thread = std::thread(&Worker::threadProc, this);
 	}
 
-	Thread::~Thread() noexcept
+	Worker::~Worker() noexcept
 	{
 		std::unique_lock<std::mutex> lock(_mtx);
 
 		_terminate = true;
 		_workerWorkTodo = true;
-		_workerWorkTodo_cv.notify_one();
+
 		lock.unlock();
+		_workerWorkTodoCond.notify_one();
 
 		_thread.join();
 	}
 
-	int Thread::start_worker()
+	int Worker::start_worker()
 	{
 
 		int latch = _ret;
-		
-		std::unique_lock<std::mutex> lock(_mtx);
-		_workerWorkDone_cv.wait(lock, [&] {return _workerWorkDone; });
-		_workerWorkTodo = true;
-		_workerWorkTodo_cv.notify_one();
+
+		{
+			std::unique_lock<std::mutex> lock(_mtx);
+
+			_workerWorkDoneCond.wait(lock, [&] {return _workerWorkDone; });
+			_workerWorkTodo = true;
+		}
+
+		_workerWorkTodoCond.notify_one();
 
 		return _ret;
 	}
 
-	void Thread::wait_for_done()
+	void Worker::wait_for_done()
 	{
 		std::unique_lock<std::mutex> lock(_mtx);
-		_workerWorkDone_cv.wait(lock, [&] {return _workerWorkDone; });
+		_workerWorkDoneCond.wait(lock, [&] {return _workerWorkDone; });
 	}
 
-	void Thread::run()
+	void Worker::run()
 	{
 		_ret = 1;
 	}
 
-	void Thread::threadProc()
+	void Worker::threadProc()
 	{
 		while (!_terminate)
 		{
 			std::unique_lock<std::mutex> lock(_mtx);
+
 			_workerWorkDone = true;
-			_workerWorkDone_cv.notify_one();
-			_workerWorkTodo_cv.wait(lock, [&] {return _workerWorkTodo; });
+			_workerWorkDoneCond.notify_one();
+
+			_workerWorkTodoCond.wait(lock, [this] { return _workerWorkTodo; });
 
 			_workerWorkTodo = false;
 			_workerWorkDone = false;
@@ -73,9 +80,8 @@ namespace js3d {
 
 			lock.unlock();
 
-			this->run();
+			run();
 		}
 		info("worker done!");
 	}
-
 }

@@ -26,6 +26,8 @@ namespace js3d {
 	private:
 		std::filesystem::path m_working_dir;
 	};
+
+	extern FileSystem g_fileSystem;
 }
 #endif
 

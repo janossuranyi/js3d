@@ -8,6 +8,8 @@
 
 namespace js3d {
 
+	FileSystem g_fileSystem;
+
 	namespace fs = std::filesystem;
 
 	FileSystem::FileSystem()
