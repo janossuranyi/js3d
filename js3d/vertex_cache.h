@@ -39,6 +39,8 @@ namespace js3d {
 		VertexBuffer		vertexBuffer;
 		std::atomic_uint	indexMemUsed;
 		std::atomic_uint	vertexMemUsed;
+		uint8_t*			mappedVertexBase;
+		uint8_t*			mappedIndexBase;
 		int					allocations;	// number of index and vertex allocations combined
 	};
 
@@ -64,6 +66,9 @@ namespace js3d {
 
 		geoBufferSet_t _static_cache;
 		geoBufferSet_t _frame_data[NUM_FRAME_DATA];
+
+		void map_buffer_set(geoBufferSet_t& set);
+		void unmap_buffer_set(geoBufferSet_t& set);
 
 		int _currentFrame;
 		int _listNum, _drawListNum;

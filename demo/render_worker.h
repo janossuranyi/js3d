@@ -22,6 +22,7 @@ public:
 	js3d::Material mat;
 	bool _first_run{ true };
 	js3d::Mesh rect;
+	js3d::RenderMesh rmesh;
 	int t1, t2, t3;
 
 

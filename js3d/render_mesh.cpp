@@ -16,6 +16,7 @@ namespace js3d {
 		_numVertices = 0;
 		_numIndices = 0;
 		_mesh = -1;
+		_dataInFrameMemory = true;
 	}
 
 	RenderMesh::RenderMesh(int index, const Mesh& mesh, RenderSystem *dm) : RenderMesh()
@@ -25,7 +26,12 @@ namespace js3d {
 		set_mesh(index, mesh);
 	}
 
-	void RenderMesh::set_mesh(int index, const Mesh& mesh)
+	RenderMesh::~RenderMesh()
+	{
+		purge();
+	}
+
+	void RenderMesh::set_mesh(int index, const Mesh& mesh, bool useFrameMemory)
 	{
 		if (mesh.numVertices() && mesh.valid())
 		{
@@ -39,11 +45,19 @@ namespace js3d {
 			const glm::vec4* colorArray = mesh.colors();
 			const glm::vec2* uvArray = mesh.uvs();
 
-			_vertices	= static_cast<drawVert_t*>	(_renderSystem->alloc_frame_mem(mesh.numVertices() * sizeof(drawVert_t)));
-			_indices	= static_cast<uint16_t*>	(_renderSystem->alloc_frame_mem(mesh.numIndices() * 2));
+			if (useFrameMemory)
+			{
+				_vertices = static_cast<drawVert_t*>	(_renderSystem->alloc_frame_mem(mesh.numVertices() * sizeof(drawVert_t)));
+				_indices = static_cast<elementIndex_t*>	(_renderSystem->alloc_frame_mem(mesh.numIndices() * 2));
+			}
+			else
+			{
+				_vertices = new drawVert_t[mesh.numVertices()];
+				_indices = new elementIndex_t[mesh.numIndices()];
+			}
 
-			::memset(_vertices, 0, mesh.numVertices() * sizeof(drawVert_t));
-			::memset(_indices,	0, mesh.numIndices() * 2);
+			memset(_vertices, 0, mesh.numVertices() * sizeof(drawVert_t));
+			memset(_indices, 0, mesh.numIndices() * 2);
 
 			_numIndices		= mesh.numIndices();
 			_numVertices	= mesh.numVertices();
@@ -59,7 +73,7 @@ namespace js3d {
 			}
 			for (unsigned i = 0; i < mesh.numIndices(); ++i)
 			{
-				_indices[i] = static_cast<uint16_t>(elementArray[i]);
+				_indices[i] = static_cast<elementIndex_t>(elementArray[i]);
 			}
 
 		}
@@ -107,6 +121,11 @@ namespace js3d {
 
 	void RenderMesh::purge()
 	{
+		if (!_dataInFrameMemory)
+		{
+			if (_vertices) delete[] _vertices;
+			if (_indices) delete[] _indices;
+		}
 		_vertices = nullptr;
 		_indices = nullptr;
 	}

@@ -132,8 +132,9 @@ int main(int argc, char** argv)
 
 		const js3d::emptyCommand_t* cmds = g_renderSystem.swap_command_buffers();
 		
-		worker.start_worker();
 
+		g_vertexCache.begin_backend();
+		worker.start_worker();
 		g_renderSystem.draw_frame(cmds);
 
 

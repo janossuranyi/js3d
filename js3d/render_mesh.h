@@ -2,6 +2,7 @@
 #define JS3D_RENDER_MESH_H
 
 #include <vector>
+#include "render_common.h"
 #include "draw_vert.h"
 #include "mesh.h"
 
@@ -14,7 +15,8 @@ namespace js3d {
 	public:
 		RenderMesh();
 		RenderMesh(int index, const Mesh& mesh, RenderSystem* dm);
-		void set_mesh(int index, const Mesh& mesh);
+		~RenderMesh();
+		void set_mesh(int index, const Mesh& mesh, bool useFrameMemory = true);
 		void set_id(int id);
 		int id() const;
 		uint64_t indexHandle() const;
@@ -39,7 +41,9 @@ namespace js3d {
 		int _numIndices;
 
 		drawVert_t* _vertices;
-		uint16_t* _indices;
+		elementIndex_t* _indices;
+
+		bool _dataInFrameMemory;
 
 		RenderSystem* _renderSystem;
 	};

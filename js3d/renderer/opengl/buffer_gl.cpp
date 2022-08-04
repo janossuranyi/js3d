@@ -1,3 +1,4 @@
+#include <cstring>
 #include <cassert>
 #include "buffer.h"
 #include "render_system.h"
@@ -24,10 +25,17 @@ namespace js3d {
 	{
 		init(usage, size, data);
 	}
-	VertexBuffer::VertexBuffer(VertexBuffer&& moved)
+	VertexBuffer::VertexBuffer(VertexBuffer&& moved) noexcept
 	{
 		_bufferId = moved.bufferId();
+		_mapped = moved._mapped;
+		_mappedPtr = moved._mappedPtr;
+		_size = moved._size;
+		_usage = moved._usage;
 		moved._bufferId = 0xFFFF;
+		moved._mapped = false;
+		moved._mappedPtr = nullptr;
+		moved._size = 0;
 	}
 	void VertexBuffer::init(eBufferUsage usage, uint32_t size, const void* data)
 	{
@@ -39,18 +47,29 @@ namespace js3d {
 		glBufferData(GL_ARRAY_BUFFER, GLsizei(size), data, bufferUsage);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		_size = size;
+		_usage = usage;
 	}
-	VertexBuffer& VertexBuffer::operator=(VertexBuffer&& moved)
+	VertexBuffer& VertexBuffer::operator=(VertexBuffer&& moved) noexcept
 	{
 		_bufferId = moved.bufferId();
+		_mapped = moved._mapped;
+		_mappedPtr = moved._mappedPtr;
+		_size = moved._size;
+		_usage = moved._usage;
 		moved._bufferId = 0xFFFF;
+		moved._mapped = false;
+		moved._mappedPtr = nullptr;
+		moved._size = 0;
 
 		return *this;
 	}
 	VertexBuffer::~VertexBuffer()
 	{
-		if(_bufferId != 0xFFFF)
+		if (_bufferId != 0xFFFF)
+		{
+			if (_mapped) unmap();
 			glDeleteBuffers(1, &_bufferId);
+		}
 	}
 	void VertexBuffer::bind() const
 	{
@@ -59,6 +78,14 @@ namespace js3d {
 	}
 	void VertexBuffer::update_data(uint32_t offset, uint32_t size, const void* bytes, bool forceBind)
 	{
+		assert((offset + size) < _size);
+
+		if (_mapped)
+		{
+			memcpy(_mappedPtr + offset, bytes, size);
+			return;
+		}
+
 		if (g_renderSystem.glVersion() >= 450)
 		{
 			glNamedBufferSubData(bufferId(), GLintptr(offset), GLsizeiptr(size), bytes);
@@ -69,14 +96,47 @@ namespace js3d {
 			glBufferSubData(GL_ARRAY_BUFFER, GLintptr(offset), GLsizeiptr(size), bytes);
 		}
 	}
+	uint8_t* VertexBuffer::map_write()
+	{
+		assert(_bufferId != 0xFFFF);
+
+		if (_mapped) return _mappedPtr;
+
+		glBindBuffer(GL_ARRAY_BUFFER, bufferId());
+		if ((_mappedPtr = (uint8_t*)glMapBufferRange(GL_ARRAY_BUFFER, 0, _size, GL_MAP_WRITE_BIT | GL_MAP_UNSYNCHRONIZED_BIT)))
+		{
+			_mapped = true;
+		}
+
+		return _mappedPtr;
+	}
+	void VertexBuffer::unmap()
+	{
+		assert(_bufferId != 0xFFFF);
+
+		if (_mapped)
+		{
+			glBindBuffer(GL_ARRAY_BUFFER, bufferId());
+			glUnmapBuffer(GL_ARRAY_BUFFER);
+			_mapped = false;
+			_mappedPtr = nullptr;
+		}
+	}
 	IndexBuffer::IndexBuffer(eBufferUsage usage, uint32_t size, const void* data)
 	{
 		init(usage, size, data);
 	}
-	IndexBuffer::IndexBuffer(IndexBuffer&& moved)
+	IndexBuffer::IndexBuffer(IndexBuffer&& moved) noexcept
 	{
 		_bufferId = moved.bufferId();
+		_mapped = moved._mapped;
+		_mappedPtr = moved._mappedPtr;
+		_size = moved._size;
+		_usage = moved._usage;
 		moved._bufferId = 0xFFFF;
+		moved._mapped = false;
+		moved._mappedPtr = nullptr;
+		moved._size = 0;
 	}
 	void IndexBuffer::init(eBufferUsage usage, uint32_t size, const void* data)
 	{
@@ -88,18 +148,56 @@ namespace js3d {
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, GLsizei(size), data, bufferUsage);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 		_size = size;
+		_usage = usage;
 	}
-	IndexBuffer& IndexBuffer::operator=(IndexBuffer&& moved)
+	IndexBuffer& IndexBuffer::operator=(IndexBuffer&& moved) noexcept
 	{
 		_bufferId = moved.bufferId();
+		_mapped = moved._mapped;
+		_mappedPtr = moved._mappedPtr;
+		_size = moved._size;
+		_usage = moved._usage;
 		moved._bufferId = 0xFFFF;
+		moved._mapped = false;
+		moved._mappedPtr = nullptr;
+		moved._size = 0;
 
 		return *this;
 	}
+	uint8_t* IndexBuffer::map_write()
+	{
+		assert(_bufferId != 0xFFFF);
+
+		if (_mapped) return _mappedPtr;
+
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bufferId());
+		if ((_mappedPtr = (uint8_t*)glMapBufferRange(GL_ELEMENT_ARRAY_BUFFER, 0, _size, GL_MAP_WRITE_BIT | GL_MAP_UNSYNCHRONIZED_BIT)))
+		{
+			_mapped = true;
+		}
+
+		return _mappedPtr;
+	}
+	void IndexBuffer::unmap()
+	{
+		assert(_bufferId != 0xFFFF);
+
+		if (_mapped)
+		{
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bufferId());
+			glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
+			_mapped = false;
+			_mappedPtr = nullptr;
+		}
+	}
+
 	IndexBuffer::~IndexBuffer()
 	{
-		if(_bufferId != 0xFFFF)
+		if (_bufferId != 0xFFFF)
+		{
+			if (_mapped) unmap();
 			glDeleteBuffers(1, &_bufferId);
+		}
 	}
 	void IndexBuffer::bind() const
 	{
@@ -108,6 +206,14 @@ namespace js3d {
 	}
 	void IndexBuffer::update_data(uint32_t offset, uint32_t size, const void* bytes, bool forceBind)
 	{
+		assert((offset + size) < _size);
+
+		if (_mapped)
+		{
+			memcpy(_mappedPtr + offset, bytes, size);
+			return;
+		}
+
 		if (g_renderSystem.glVersion() >= 450)
 		{
 			glNamedBufferSubData(bufferId(), GLintptr(offset), GLsizeiptr(size), bytes);

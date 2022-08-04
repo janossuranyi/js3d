@@ -18,11 +18,12 @@ namespace js3d {
 			stateFlags(GLS_CULL_TWOSIDED | GLS_DEPTHFUNC_ALWAYS),
 			receiveShadow(true),
 			castShadow(true),
-			meshId(-1)
+			meshId(-1),
+			vertexData()
 		{}
 
 		eDrawElementType elementType;
-//		triSurf_t* vertexData;
+		triSurf_t* vertexData;
 		int meshId;
 		Material* material;
 		vertexLayout_t vertexLayout;

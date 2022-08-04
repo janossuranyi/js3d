@@ -1,10 +1,12 @@
 #include <SDL.h>
 #include <GL/glew.h>
 #include <vector>
+#include <cstring>
 #include "js3d.h"
 #include "render_system.h"
 #include "render_common.h"
 #include "GLState.h"
+#include "logger.h"
 
 #define VERTEX_ATTRIB_POSITION_INDEX	(0)
 #define VERTEX_ATTRIB_QTANGENT_INDEX	(1)
@@ -583,6 +585,11 @@ namespace js3d {
 	{
 		glClear(GL_COLOR_BUFFER_BIT);
 
+		_activeIndexBuffer = -1;
+		_activeVertexBuffer = -1;
+		//_activeProgram = -1;
+		//_activeVertexLayout = VERTEX_LAYOUT_LAST_ENUM;
+
 		for (; cmds; cmds = (emptyCommand_t*)cmds->next)
 		{
 			switch (cmds->commandId)
@@ -602,6 +609,7 @@ namespace js3d {
 		glFinish();
 
 		SDL_GL_SwapWindow(_sdl_window);
+
 		++_frameCount;
 
 		poll_input();
@@ -623,22 +631,48 @@ namespace js3d {
         // set material
         // ...
 
-		RenderMesh& mesh = _render_meshes[surf.meshId];
+		VertexBuffer const* vertCacheBuf;
+		IndexBuffer const* idxCacheBuf;
 
 		uint32_t indexOffset, indexSize, vertexOffset, vertexSize;
 		bool isStatic;
-		g_vertexCache.decode_handle(mesh.indexHandle(), indexOffset, indexSize, isStatic);
-		g_vertexCache.decode_handle(mesh.vertexHandle(), vertexOffset, vertexSize, isStatic);
+		uint32_t numIndices;
+		
+		if (surf.meshId > -1)
+		{
+			RenderMesh& mesh = _render_meshes[surf.meshId];
 
-		VertexBuffer const* vertCacheBuf;
+			g_vertexCache.decode_handle(mesh.indexHandle(), indexOffset, indexSize, isStatic);
+			g_vertexCache.decode_handle(mesh.vertexHandle(), vertexOffset, vertexSize, isStatic);
+			numIndices = mesh.numIndices();
+		}
+		else if (surf.vertexData)
+		{
+			bool ok = true;
+			ok &= g_vertexCache.decode_handle(surf.vertexData->idxHandle, indexOffset, indexSize, isStatic);
+			ok &= g_vertexCache.decode_handle(surf.vertexData->vertHandle, vertexOffset, vertexSize, isStatic);
+			numIndices = surf.vertexData->numIndices;
+
+			if (!ok) {
+				warning("Invalid cache entry !");
+				return;
+			}
+		}
+		else
+		{
+			return;
+		}
+
 
 		if (isStatic)
 		{
 			vertCacheBuf = &g_vertexCache._static_cache.vertexBuffer;
+			idxCacheBuf = &g_vertexCache._static_cache.indexBuffer;
 		}
 		else
 		{
-			vertCacheBuf = &g_vertexCache._frame_data[g_vertexCache._listNum].vertexBuffer;
+			vertCacheBuf = &g_vertexCache._frame_data[g_vertexCache._drawListNum].vertexBuffer;
+			idxCacheBuf = &g_vertexCache._frame_data[g_vertexCache._drawListNum].indexBuffer;
 		}
 			
 
@@ -664,10 +698,11 @@ namespace js3d {
 			_activeVertexLayout = surf.vertexLayout;
         }
 
-        if (_activeIndexBuffer != g_vertexCache._static_cache.indexBuffer.bufferId())
+
+        if (_activeIndexBuffer != idxCacheBuf->bufferId())
         {
-            _activeIndexBuffer = g_vertexCache._static_cache.indexBuffer.bufferId();
-			g_vertexCache._static_cache.indexBuffer.bind();
+			_activeIndexBuffer = idxCacheBuf->bufferId();
+			idxCacheBuf->bind();
         }
 
 
@@ -716,7 +751,7 @@ namespace js3d {
 
         glDrawElementsBaseVertex(
             elemType,
-            mesh.numIndices(),
+            numIndices,
             GL_UNSIGNED_SHORT,
             (void*)indexOffset,
             GLint(vertexOffset / sizeof(drawVert_t)));
@@ -781,6 +816,8 @@ namespace js3d {
 
 		emptyCommand_t* commandBuffer = _frameData->cmdHead;
 
+		//info("used frame memory: %d", _frameData->frameMemoryAllocated.load());
+
 		++_smpFrame;
 
 		_frameData = &_smpFrameData[_smpFrame % NUM_FRAME_DATA];
@@ -796,7 +833,7 @@ namespace js3d {
 	static inline void ZeroCacheLine(void* ptr, int offset)
 	{
 		uint8_t* bytePtr = (uint8_t*)((((uintptr_t)(ptr)) + (offset)) & ~(CACHE_LINE_SIZE - 1));
-		::memset(bytePtr, 0, CACHE_LINE_SIZE);
+		memset(bytePtr, 0, CACHE_LINE_SIZE);
 	}
 
     RenderSystem g_renderSystem;
