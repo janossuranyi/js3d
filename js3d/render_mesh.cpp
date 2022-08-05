@@ -1,9 +1,14 @@
 #include <cinttypes>
-#include <memory>
+#include <cstring>
 #include <glm/glm.hpp>
 #include "heap.h"
 #include "render_mesh.h"
 #include "render_system.h"
+
+#undef SPCAST
+#undef SCAST
+#define SPCAST(t,x) static_cast<t*>(x)
+#define SCAST(t,x) static_cast<t>(x)
 
 namespace js3d {
 	RenderMesh::RenderMesh()
@@ -47,17 +52,17 @@ namespace js3d {
 
 			if (useFrameMemory)
 			{
-				_vertices = static_cast<drawVert_t*>	(_renderSystem->alloc_frame_mem(mesh.numVertices() * sizeof(drawVert_t)));
-				_indices = static_cast<elementIndex_t*>	(_renderSystem->alloc_frame_mem(mesh.numIndices() * 2));
+				_vertices = SPCAST(drawVert_t, _renderSystem->alloc_frame_mem(mesh.numVertices() * sizeof(drawVert_t)));
+				_indices = SPCAST(elementIndex_t, _renderSystem->alloc_frame_mem(mesh.numIndices() * sizeof(elementIndex_t)));
 			}
 			else
 			{
-				_vertices = new drawVert_t[mesh.numVertices()];
-				_indices = new elementIndex_t[mesh.numIndices()];
+				_vertices = SPCAST(drawVert_t, Mem_Alloc16(sizeof(drawVert_t) * mesh.numVertices()));
+				_indices =  SPCAST(elementIndex_t, Mem_Alloc16(sizeof(elementIndex_t) * mesh.numIndices()));
 			}
 
 			memset(_vertices, 0, mesh.numVertices() * sizeof(drawVert_t));
-			memset(_indices, 0, mesh.numIndices() * 2);
+			memset(_indices, 0, mesh.numIndices() * sizeof(elementIndex_t));
 
 			_numIndices		= mesh.numIndices();
 			_numVertices	= mesh.numVertices();
@@ -73,7 +78,7 @@ namespace js3d {
 			}
 			for (unsigned i = 0; i < mesh.numIndices(); ++i)
 			{
-				_indices[i] = static_cast<elementIndex_t>(elementArray[i]);
+				_indices[i] = SCAST(elementIndex_t, elementArray[i]);
 			}
 
 		}
@@ -123,8 +128,8 @@ namespace js3d {
 	{
 		if (!_dataInFrameMemory)
 		{
-			if (_vertices) delete[] _vertices;
-			if (_indices) delete[] _indices;
+			if (_vertices) Mem_Free16(_vertices);
+			if (_indices) Mem_Free16(_indices);
 		}
 		_vertices = nullptr;
 		_indices = nullptr;
