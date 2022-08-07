@@ -26,7 +26,10 @@ namespace js3d {
 
     void GLAPIENTRY OGLDebugOutputCallback(GLenum alSource, GLenum alType, GLuint alID, GLenum alSeverity, GLsizei alLength, const GLchar* apMessage, const void* apUserParam)
     {
-        info("Source: %d Type: %d Id: %d Severity: %d '%s'", alSource, alType, alID, alSeverity, apMessage);
+		if (alSeverity == GL_DEBUG_SEVERITY_HIGH)
+		{
+			warning("Source: %d Type: %d Id: %d Severity: %d '%s'", alSource, alType, alID, alSeverity, apMessage);
+		}
     }
 
 	RenderSystem::RenderSystem()
@@ -631,30 +634,37 @@ namespace js3d {
         // set material
         // ...
 
-		VertexBuffer const* vertCacheBuf;
-		IndexBuffer const* idxCacheBuf;
+		VertexBuffer vertCacheBuf;
+		IndexBuffer idxCacheBuf;
 
-		uint32_t indexOffset, indexSize, vertexOffset, vertexSize;
-		bool isStatic;
 		uint32_t numIndices;
 		
 		if (surf.meshId > -1)
 		{
 			RenderMesh& mesh = _render_meshes[surf.meshId];
 
-			g_vertexCache.decode_handle(mesh.indexHandle(), indexOffset, indexSize, isStatic);
-			g_vertexCache.decode_handle(mesh.vertexHandle(), vertexOffset, vertexSize, isStatic);
+			bool ok = true;
+			//			g_vertexCache.decode_handle(mesh.indexHandle(), indexOffset, indexSize, isStatic);
+//			g_vertexCache.decode_handle(mesh.vertexHandle(), vertexOffset, vertexSize, isStatic);
+			ok &= g_vertexCache.get_index(mesh.indexHandle(), idxCacheBuf);
+			ok &= g_vertexCache.get_vertex(mesh.vertexHandle(), vertCacheBuf);
 			numIndices = mesh.numIndices();
+
+			if (!ok) {
+				warning("Invalid static cache entry !");
+				return;
+			}
+
 		}
 		else if (surf.vertexData)
 		{
 			bool ok = true;
-			ok &= g_vertexCache.decode_handle(surf.vertexData->idxHandle, indexOffset, indexSize, isStatic);
-			ok &= g_vertexCache.decode_handle(surf.vertexData->vertHandle, vertexOffset, vertexSize, isStatic);
+			ok &= g_vertexCache.get_index(surf.vertexData->idxHandle, idxCacheBuf);
+			ok &= g_vertexCache.get_vertex(surf.vertexData->vertHandle, vertCacheBuf);
 			numIndices = surf.vertexData->numIndices;
 
 			if (!ok) {
-				warning("Invalid cache entry !");
+				warning("Invalid frame cache entry !");
 				return;
 			}
 		}
@@ -662,27 +672,15 @@ namespace js3d {
 		{
 			return;
 		}
-
-
-		if (isStatic)
-		{
-			vertCacheBuf = &g_vertexCache._static_cache.vertexBuffer;
-			idxCacheBuf = &g_vertexCache._static_cache.indexBuffer;
-		}
-		else
-		{
-			vertCacheBuf = &g_vertexCache._frame_data[g_vertexCache._drawListNum].vertexBuffer;
-			idxCacheBuf = &g_vertexCache._frame_data[g_vertexCache._drawListNum].indexBuffer;
-		}
 			
 
         if (glVersion() < 430)
         {
             //glBindVertexArray(vao);
-			if (_activeVertexLayout != surf.vertexLayout || _activeVertexBuffer != vertCacheBuf->bufferId()) {
-                _activeVertexBuffer = vertCacheBuf->bufferId();
+			if (_activeVertexLayout != surf.vertexLayout || _activeVertexBuffer != vertCacheBuf.bufferId()) {
+                _activeVertexBuffer = vertCacheBuf.bufferId();
 				_activeVertexLayout = surf.vertexLayout;
-				vertCacheBuf->bind();
+				vertCacheBuf.bind();
 
 				const GLuint stride = _vertexLayouts[_activeVertexLayout].stride;
 				for (auto& attr : _vertexLayouts[_activeVertexLayout].attribs)
@@ -691,18 +689,18 @@ namespace js3d {
 				}
             }
         }
-        else if (_activeVertexLayout != surf.vertexLayout || _activeVertexBuffer != vertCacheBuf->bufferId())
+        else if (_activeVertexLayout != surf.vertexLayout || _activeVertexBuffer != vertCacheBuf.bufferId())
         {
-            glBindVertexBuffer(0, vertCacheBuf->bufferId(), 0, _vertexLayouts[surf.vertexLayout].stride);
-			_activeVertexBuffer = vertCacheBuf->bufferId();
+            glBindVertexBuffer(0, vertCacheBuf.bufferId(), 0, _vertexLayouts[surf.vertexLayout].stride);
+			_activeVertexBuffer = vertCacheBuf.bufferId();
 			_activeVertexLayout = surf.vertexLayout;
         }
 
 
-        if (_activeIndexBuffer != idxCacheBuf->bufferId())
+        if (_activeIndexBuffer != idxCacheBuf.bufferId())
         {
-			_activeIndexBuffer = idxCacheBuf->bufferId();
-			idxCacheBuf->bind();
+			_activeIndexBuffer = idxCacheBuf.bufferId();
+			idxCacheBuf.bind();
         }
 
 
@@ -731,19 +729,19 @@ namespace js3d {
 			prg.set_sampler_unit(2, 2);
 		}
 
-		if (_tmus[0].texId != surfMaterial->get_diffuse_texture())
+		if (_tmus[0].texture2DId != surfMaterial->get_diffuse_texture())
 		{
-			_tmus[0].texId = surfMaterial->get_diffuse_texture();
+			_tmus[0].texture2DId = surfMaterial->get_diffuse_texture();
 			g_textureManager.bind(surfMaterial->get_diffuse_texture(), 0);
 		}
-		if (_tmus[1].texId != surfMaterial->get_metallic_roughness_texture())
+		if (_tmus[1].texture2DId != surfMaterial->get_metallic_roughness_texture())
 		{
-			_tmus[1].texId = surfMaterial->get_metallic_roughness_texture();
+			_tmus[1].texture2DId = surfMaterial->get_metallic_roughness_texture();
 			g_textureManager.bind(surfMaterial->get_metallic_roughness_texture(), 1);
 		}
-		if (_tmus[2].texId != surfMaterial->get_normal_texture())
+		if (_tmus[2].texture2DId != surfMaterial->get_normal_texture())
 		{
-			_tmus[2].texId = surfMaterial->get_normal_texture();
+			_tmus[2].texture2DId = surfMaterial->get_normal_texture();
 			g_textureManager.bind(surfMaterial->get_normal_texture(), 2);
 		}
 
@@ -753,8 +751,8 @@ namespace js3d {
             elemType,
             numIndices,
             GL_UNSIGNED_SHORT,
-            (void*)indexOffset,
-            GLint(vertexOffset / sizeof(drawVert_t)));
+            (void*)idxCacheBuf.offset(),
+            GLint(vertCacheBuf.offset() / sizeof(drawVert_t)));
     }
 
 	void RenderSystem::create_mesh(createMeshCommand_t* cmd)

@@ -1,9 +1,7 @@
 #include <SDL.h>
 #include "vertex_cache.h"
 #include "logger.h"
-
-#define JS3D_ALIGN16(x) (((x) + 15) & ~15)
-#define JS3D_ALIGN32(x) (((x) + 31) & ~31)
+#include "macros.h"
 
 namespace js3d {
 
@@ -50,28 +48,28 @@ namespace js3d {
 
 	vertCacheHandle_t VertexCache::alloc_vertex(const void* data, int num, size_t size)
 	{
-		vertCacheHandle_t handle = internal_alloc(_frame_data[_listNum], data, JS3D_ALIGN32( num * size ), CACHE_VERTEX);
+		vertCacheHandle_t handle = internal_alloc(_frame_data[_listNum], data, ALIGN( num * size, 16 ), CACHE_VERTEX);
 
 		return handle;
 	}
 
 	vertCacheHandle_t VertexCache::alloc_index(const void* data, int num, size_t size)
 	{
-		vertCacheHandle_t handle = internal_alloc(_frame_data[_listNum], data, JS3D_ALIGN16( size * num ), CACHE_INDEX);
+		vertCacheHandle_t handle = internal_alloc(_frame_data[_listNum], data, ALIGN( size * num, 32), CACHE_INDEX);
 
 		return handle;
 	}
 
 	vertCacheHandle_t VertexCache::alloc_static_vertex(const void* data, int num, size_t size)
 	{
-		vertCacheHandle_t handle = internal_alloc(_static_cache, data, JS3D_ALIGN32( size * num ), CACHE_VERTEX);
+		vertCacheHandle_t handle = internal_alloc(_static_cache, data, ALIGN( size * num, 16 ), CACHE_VERTEX);
 
 		return handle;
 	}
 
 	vertCacheHandle_t VertexCache::alloc_static_index(const void* data, int num, size_t size)
 	{
-		vertCacheHandle_t handle = internal_alloc(_static_cache, data, JS3D_ALIGN16( size * num ), CACHE_INDEX);
+		vertCacheHandle_t handle = internal_alloc(_static_cache, data, ALIGN( size * num, 32 ), CACHE_INDEX);
 
 		return handle;
 	}
@@ -116,6 +114,48 @@ namespace js3d {
 		{
 			int frameNum = (handle >> VERTCACHE_FRAME_SHIFT) & VERTCACHE_FRAME_MASK;
 			return frameNum == ((_currentFrame - 1) & VERTCACHE_FRAME_MASK);
+		}
+
+		return true;
+	}
+
+	bool VertexCache::get_vertex(vertCacheHandle_t handle, VertexBuffer& ref)
+	{
+
+		uint32_t offset, size, frame;
+		bool isStatic;
+
+		bool ok = decode_handle(handle, offset, size, isStatic);
+
+		if (!ok) return false;
+
+		if (isStatic)
+		{
+			_static_cache.vertexBuffer.create_reference(offset, size, ref);
+		}
+		else
+		{
+			_frame_data[_drawListNum].vertexBuffer.create_reference(offset, size, ref);
+		}
+		return true;
+	}
+
+	bool VertexCache::get_index(vertCacheHandle_t handle, IndexBuffer& ref)
+	{
+		uint32_t offset, size, frame;
+		bool isStatic;
+
+		bool ok = decode_handle(handle, offset, size, isStatic);
+
+		if (!ok) return false;
+
+		if (isStatic)
+		{
+			_static_cache.indexBuffer.create_reference(offset, size, ref);
+		}
+		else
+		{
+			_frame_data[_drawListNum].indexBuffer.create_reference(offset, size, ref);
 		}
 
 		return true;

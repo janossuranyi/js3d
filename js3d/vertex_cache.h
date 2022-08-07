@@ -61,6 +61,8 @@ namespace js3d {
 		void begin_backend();
 
 		bool decode_handle(vertCacheHandle_t handle, uint32_t& offset, uint32_t& size, bool& isStatic);
+		bool get_vertex(vertCacheHandle_t handle, VertexBuffer& ref);
+		bool get_index(vertCacheHandle_t handle, IndexBuffer& ref);
 	private:
 		vertCacheHandle_t internal_alloc(geoBufferSet_t& set, const void* data, int bytes, cacheType_t type);
 

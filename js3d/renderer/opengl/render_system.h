@@ -72,8 +72,10 @@ namespace js3d {
 
 	private:
 		struct tmu_t {
-			tmu_t() : texId(-1) {}
-			int texId;
+			tmu_t() {}
+			int texture2DId{-1};
+			int texture2DArrayId{-1};
+			int textureCubeMapId{-1};
 		};
 
 		

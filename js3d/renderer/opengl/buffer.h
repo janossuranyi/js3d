@@ -13,7 +13,7 @@ namespace js3d {
 
 	public:
 		VertexBuffer(eBufferUsage usage, uint32_t size, const void* data);
-		VertexBuffer() : _bufferId(0xFFFF), _size(0), _mapped(false), _reference(false), _mappedPtr(), _usage(eBufferUsage::STATIC) {};
+		VertexBuffer() : _bufferId(0xFFFF), _size(0), _mapped(false), _reference(false), _mappedPtr(), _usage(eBufferUsage::STATIC), _offset(0) {};
 		VertexBuffer(VertexBuffer&) = delete;
 		VertexBuffer(VertexBuffer&&) noexcept;
 		VertexBuffer& operator=(VertexBuffer&) = delete;
@@ -22,18 +22,22 @@ namespace js3d {
 		void init(eBufferUsage usage, uint32_t size, const void* data);
 		void bind() const;
 		uint32_t size() const { return _size; }
+		uint32_t offset() const { return _offset; }
 		void update_data(uint32_t offset, uint32_t size, const void* bytes, bool forceBind = false);
 		uint8_t* map_write();
 		//uint8_t* map_write_range(uint32_t offset, uint32_t size);
 		void unmap();
 
 		eBufferUsage usage() const { return _usage; }
+		void create_reference(uint32_t offset, uint32_t size, VertexBuffer& ref);
 	private:
+		void move(VertexBuffer& other);
 		GLuint bufferId() const { return _bufferId; }
 		GLuint _bufferId;
 		eBufferUsage _usage;
 
 		uint32_t _size;
+		uint32_t _offset;
 		uint8_t* _mappedPtr;
 
 		bool _mapped;
@@ -53,15 +57,18 @@ namespace js3d {
 		void init(eBufferUsage usage, uint32_t size, const void* data);
 		void bind() const;
 		uint32_t size() const { return _size; }
+		uint32_t offset() const { return _offset; }
 		void update_data(uint32_t offset, uint32_t size, const void* bytes, bool forceBind = false);
 		uint8_t* map_write();
 		//uint8_t* map_write_range(uint32_t offset, uint32_t size);
 		void unmap();
 		eBufferUsage usage() const { return _usage; }
+		void create_reference(uint32_t offset, uint32_t size, IndexBuffer& ref);
 	private:
 		GLuint bufferId() const { return _bufferId; }
 		GLuint _bufferId;
 		uint32_t _size;
+		uint32_t _offset;
 		uint8_t* _mappedPtr;
 		eBufferUsage _usage;
 
@@ -77,7 +84,7 @@ namespace js3d {
 		UniformBuffer(UniformBuffer&) = delete;
 		UniformBuffer(UniformBuffer&&);
 		UniformBuffer& operator=(UniformBuffer&) = delete;
-		UniformBuffer& operator=(UniformBuffer&&);
+		UniformBuffer& operator=(UniformBuffer&&) noexcept;
 		~UniformBuffer() noexcept;
 		void init(eBufferUsage usage, uint32_t size, const void* data);
 		void bind(int index) const;
