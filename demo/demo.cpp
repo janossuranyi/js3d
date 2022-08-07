@@ -12,6 +12,7 @@
 #include "render_common.h"
 #include "thread.h"
 #include "render_worker.h"
+#include "gltf_loader.h"
 
 using namespace js3d;
 using namespace glm;
@@ -27,38 +28,13 @@ int main(int argc, char** argv)
 
 	std::string err, warn;
 
-	_tinygltf Model model;
-	_tinygltf TinyGLTF loader;
-
 	err = "none";
 	warn = "none";
 
-	loader.LoadASCIIFromFile(&model, &err, &warn, "d:/src/js3d/assets/scene.gltf", 0);
+	GltfLoader loader;
 
-	info("Scene warning: %s, scene error: %s", warn.c_str(), err.c_str());
-
-	info("==================================================");
-	info("Scene info");
-	info("==================================================");
-	info("asset.generator: %s", model.asset.generator.c_str());
-	info("asset.version:   %s", model.asset.version.c_str());
-	info("extension.used:  %d", model.extensionsUsed.size());
-	for (auto e : model.extensionsUsed)
-	{
-		info("extension: %s", e.c_str());
-	}
-
+	loader.load("C:\\Users\\user\\3D\ Objects\\Steampunk_Dirigible_with_Ship.glb", err,  warn);
 	info("Number of logical CPU cores: %d", SDL_GetCPUCount());
-	info("scenes:    %d", model.scenes.size());
-	info("nodes:     %d", model.nodes.size());
-	info("ligths:    %d", model.lights.size());
-	info("cameras:   %d", model.cameras.size());
-	info("meshes:    %d", model.meshes.size());
-	info("materials: %d", model.materials.size());
-	info("textures:  %d", model.textures.size());
-	info("binary data size: %d", model.buffers[0].data.size());
-	info("==================================================");
-
 
 
 	info("js3d v2.0");
