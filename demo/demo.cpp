@@ -33,7 +33,7 @@ int main(int argc, char** argv)
 
 	GltfLoader loader;
 
-	loader.load("C:\\Users\\user\\3D\ Objects\\Steampunk_Dirigible_with_Ship.glb", err,  warn);
+	loader.load(g_fileSystem.resolve("Steampunk_Dirigible_with_Ship.glb"), err, warn);
 	info("Number of logical CPU cores: %d", SDL_GetCPUCount());
 
 
