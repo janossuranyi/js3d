@@ -39,19 +39,19 @@ namespace js3d {
 		{
 			std::unique_lock<std::mutex> lock(_mtx);
 
-			_workerWorkDoneCond.wait(lock, [&] {return _workerWorkDone; });
+			_workerWorkDoneCond.wait(lock, [this] {return _workerWorkDone; });
 			_workerWorkTodo = true;
 		}
 
 		_workerWorkTodoCond.notify_one();
 
-		return _ret;
+		return latch;
 	}
 
 	void Worker::wait_for_done()
 	{
 		std::unique_lock<std::mutex> lock(_mtx);
-		_workerWorkDoneCond.wait(lock, [&] {return _workerWorkDone; });
+		_workerWorkDoneCond.wait(lock, [this] {return _workerWorkDone; });
 	}
 
 	void Worker::run()
